@@ -48,6 +48,8 @@
  * 1.00a pp  09/01/16 release
  * 1.00b yrq 09/06/16 adjust format, change log size
  * 1.00c lcc 11/10/16 voltage reference with single fl.point division
+ * 1.01  mr  29/09/20 simplify code to only log raw values, the conversion
+ *                    to voltage should be done by the user application
  *
  * </pre>
  *
@@ -60,9 +62,7 @@
 // Mailbox commands
 #define CONFIG_IOP_SWITCH       0x1
 #define GET_RAW_DATA            0x3
-#define GET_VOLTAGE             0x5
 #define READ_AND_LOG_RAW        0x7
-#define READ_AND_LOG_FLOAT      0x9
 #define RESET_ANALOG            0xB
 /******************************************************************************
  *
@@ -78,10 +78,8 @@
  *****************************************************************************/
 // Log constants
 #define LOG_BASE_ADDRESS (MAILBOX_DATA_PTR(4))
-#define LOG_FLOAT_SIZE sizeof(float)
 #define LOG_INT_SIZE sizeof(int)
 
-#define V_REF 3.33
 #define SYSMON_DEVICE_ID XPAR_SYSMON_0_DEVICE_ID
 
 static XSysMon SysMonInst;
@@ -105,7 +103,6 @@ int main(void)
     u32 xStatus;
     int i, log_capacity;
     u32 xadc_raw_value;
-    float xadc_voltage;
 
     // SysMon Initialize
     SysMonConfigPtr = XSysMon_LookupConfig(SYSMON_DEVICE_ID);
@@ -117,9 +114,6 @@ int main(void)
         xil_printf("SysMon CfgInitialize failed\r\n");
     // Clear the old status
     XSysMon_GetStatus(SysMonInstPtr);
-
-    // Fixed voltage conversion
-    float V_Conv = V_REF / 65536;
 
     while(1){
         // wait and store valid command
@@ -155,33 +149,6 @@ int main(void)
                 if(data_channels & 0x20)
                     MAILBOX_DATA(i++) = XSysMon_GetAdcData(SysMonInstPtr,
                                             XSM_CH_AUX_MIN+13);
-                MAILBOX_CMD_ADDR = 0x0;
-                break;
-
-            case GET_VOLTAGE:
-                i=0;
-                // Wait for the conversion complete
-                while ((XSysMon_GetStatus(SysMonInstPtr) & 
-                        XSM_SR_EOS_MASK) != XSM_SR_EOS_MASK);
-                data_channels = MAILBOX_CMD_ADDR >> 8;
-                if(data_channels & 0x1)
-                    MAILBOX_DATA_FLOAT(i++) = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+1)*V_Conv);
-                if(data_channels & 0x2)
-                    MAILBOX_DATA_FLOAT(i++) = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+9)*V_Conv);
-                if(data_channels & 0x4)
-                    MAILBOX_DATA_FLOAT(i++) = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+6)*V_Conv);
-                if(data_channels & 0x8)
-                    MAILBOX_DATA_FLOAT(i++) = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+15)*V_Conv);
-                if(data_channels & 0x10)
-                    MAILBOX_DATA_FLOAT(i++) = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+5)*V_Conv);
-                if(data_channels & 0x20)
-                    MAILBOX_DATA_FLOAT(i++) = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+13)*V_Conv);
                 MAILBOX_CMD_ADDR = 0x0;
                 break;
 
@@ -235,56 +202,6 @@ int main(void)
                 MAILBOX_CMD_ADDR = 0x0;
                 break;
 
-            case READ_AND_LOG_FLOAT:
-                // initialize logging variables, reset cmd
-                delay = MAILBOX_DATA(1);
-                // get channels to be sampled
-                data_channels = MAILBOX_CMD_ADDR >> 8;
-                // allocate 1000 samples per channel
-                log_capacity = 4000 / LOG_FLOAT_SIZE * 
-                               count_set_bits(data_channels);
-                cb_init(&circular_log, LOG_BASE_ADDRESS, 
-                        log_capacity, LOG_FLOAT_SIZE);
-                while(MAILBOX_CMD_ADDR != RESET_ANALOG){
-                    // wait for sample conversion
-                    while ((XSysMon_GetStatus(SysMonInstPtr) & 
-                            XSM_SR_EOS_MASK) != XSM_SR_EOS_MASK);
-                            
-                    if(data_channels & 0x1) {
-                        xadc_voltage = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+1)*V_Conv);
-                        cb_push_back_float(&circular_log, &xadc_voltage);
-                    }
-                    if(data_channels & 0x2) {
-                        xadc_voltage = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+9)*V_Conv);
-                        cb_push_back_float(&circular_log, &xadc_voltage);
-                    }
-                    if(data_channels & 0x4) {
-                        xadc_voltage = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+6)*V_Conv);
-                        cb_push_back_float(&circular_log, &xadc_voltage);
-                    }
-                    if(data_channels & 0x8) {
-                        xadc_voltage = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+15)*V_Conv);
-                        cb_push_back_float(&circular_log, &xadc_voltage);
-                    }
-                    if(data_channels & 0x10) {
-                        xadc_voltage = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+5)*V_Conv);
-                        cb_push_back_float(&circular_log, &xadc_voltage);
-                    }
-                    if(data_channels & 0x20) {
-                        xadc_voltage = (float)(XSysMon_GetAdcData(
-                                SysMonInstPtr,XSM_CH_AUX_MIN+13)*V_Conv);
-                        cb_push_back_float(&circular_log, &xadc_voltage);
-                    }
-                    delay_ms(delay);
-                }
-                MAILBOX_CMD_ADDR = 0x0;
-                break;
-            
             case RESET_ANALOG:
                 // SysMon Initialize
                 SysMonConfigPtr = XSysMon_LookupConfig(SYSMON_DEVICE_ID);

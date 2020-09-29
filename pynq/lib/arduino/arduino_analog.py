@@ -45,28 +45,9 @@ ARDUINO_ANALOG_LOG_START = MAILBOX_OFFSET+16
 ARDUINO_ANALOG_SAMPLES = 1000
 CONFIG_IOP_SWITCH = 0x1
 GET_RAW_DATA = 0x3
-GET_VOLTAGE = 0x5
 READ_AND_LOG_RAW = 0x7
-READ_AND_LOG_FLOAT = 0x9
 RESET_ANALOG = 0xB
-
-
-def _reg2float(reg):
-    """Converts 32-bit register value to floats in Python.
-
-    Parameters
-    ----------
-    reg: int
-        A 32-bit register value read from the mailbox.
-
-    Returns
-    -------
-    float
-        A float number translated from the register value.
-
-    """
-    s = struct.pack('>l', reg)
-    return struct.unpack('>f', s)[0]
+V_Conv = 3.33 / 65536
 
 
 class Arduino_Analog(object):
@@ -142,6 +123,7 @@ class Arduino_Analog(object):
         
     def read(self):
         """Read the voltage value from the analog peripheral.
+        It uses read_raw converts to voltage using the conversion constant.
         
         Returns
         -------
@@ -149,14 +131,8 @@ class Arduino_Analog(object):
             The float values after translation.
         
         """
-        data_channels = 0
-        for channel in self.gr_pin:
-            data_channels |= (0x1 << channel)
-        cmd = (data_channels << 8) + GET_VOLTAGE
-        self.microblaze.write_blocking_command(cmd)
 
-        raw = self.microblaze.read_mailbox(0, self.num_channels)
-        return [float("{0:.4f}".format(_reg2float(i))) for i in raw]
+        return self.read_raw () * V_Conv
         
     def set_log_interval_ms(self, log_interval_ms):
         """Set the length of the log for the analog peripheral.
@@ -177,14 +153,11 @@ class Arduino_Analog(object):
         if log_interval_ms < 0:
             raise ValueError("Time between samples should be no less than 0.")
         
-        if isinstance(log_interval_ms, int):
-            raise ValueError("Time between samples should be integer.")
-
         self.log_interval_ms = log_interval_ms
         self.microblaze.write_mailbox(4, log_interval_ms)
 
     def start_log_raw(self):
-        """Start recording raw data in a log.
+        """Start recording multiple analog samples (raw) values in a log.
         
         This method will first call set_log_interval_ms() before writing to
         the MMIO.
@@ -204,7 +177,7 @@ class Arduino_Analog(object):
         self.microblaze.write_non_blocking_command(cmd)
                         
     def start_log(self):
-        """Start recording multiple voltage values (float) in a log.
+        """Start recording multiple analog samples (raw) values in a log.
         
         This method will first call set_log_interval_ms() before writing to
         the MMIO.
@@ -214,14 +187,7 @@ class Arduino_Analog(object):
         None
         
         """
-        self.log_running = 1
-        self.set_log_interval_ms(self.log_interval_ms)
-        
-        data_channels = 0
-        for channel in self.gr_pin:
-            data_channels |= (0x1 << channel)
-        cmd = (data_channels << 8) + READ_AND_LOG_FLOAT
-        self.microblaze.write_non_blocking_command(cmd)
+        self.start_log_raw()
 
     def stop_log_raw(self):
         """Stop recording the raw values in the log.
@@ -249,11 +215,7 @@ class Arduino_Analog(object):
         None
         
         """
-        if self.log_running == 1:
-            self.microblaze.write_non_blocking_command(RESET_ANALOG)
-            self.log_running = 0
-        else:
-            raise RuntimeError("No analog log running.")
+        self.stop_log_raw()
         
     def get_log_raw(self):
         """Return list of logged raw samples.
@@ -308,42 +270,8 @@ class Arduino_Analog(object):
         
         """
         # Stop logging
-        self.stop_log()
 
-        # Prep iterators and results list
-        [head_ptr, tail_ptr] = self.microblaze.read_mailbox(0x8, 2)
-        readings = []
-        for _ in range(self.num_channels):
-            readings.append([])
-        
-        # Calculate the log ending
-        log_end = ARDUINO_ANALOG_LOG_START + \
-            4*ARDUINO_ANALOG_SAMPLES*self.num_channels
-        
-        # Sweep circular buffer for samples
-        if head_ptr == tail_ptr:
-            return None
-        elif head_ptr < tail_ptr:
-            for i in range(head_ptr, tail_ptr, 4*self.num_channels):
-                raw = self.microblaze.read(i, self.num_channels)
-                for j in range(self.num_channels):
-                    readings[j].append(float("{0:.4f}".format(
-                        _reg2float(raw[j]))))
-
-        else:
-            for i in range(head_ptr, log_end, 4*self.num_channels):
-                raw = self.microblaze.read(i, self.num_channels)
-                for j in range(self.num_channels):
-                    readings[j].append(float("{0:.4f}".format(
-                        _reg2float(raw[j]))))
-
-            for i in range(ARDUINO_ANALOG_LOG_START, tail_ptr,
-                           4*self.num_channels):
-                raw = self.microblaze.read(i, self.num_channels)
-                for j in range(self.num_channels):
-                    readings[j].append(float("{0:.4f}".format(
-                        _reg2float(raw[j]))))
-        return readings
+        return get_log_raw() * V_Conv
         
     def reset(self):
         """Resets the system monitor for analog devices.
