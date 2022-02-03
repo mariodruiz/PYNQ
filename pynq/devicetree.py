@@ -54,7 +54,7 @@ def get_dtbo_path(bitfile_name):
         The absolute path of the dtbo file.
 
     """
-    return ''.join(bitfile_name.split('.', -1)[:-1]) + '.dtbo'
+    return os.path.splitext(bitfile_name)[0] + '.dtbo'
 
 
 def get_dtbo_base_name(dtbo_path):
@@ -130,6 +130,19 @@ class DeviceTreeSegment:
         with open(os.path.join(self.sysfs_dir, 'dtbo'),
                   'wb', buffering=0) as f:
             f.write(dtbo_data)
+
+        # The only way to detect a DTBO insert failure is to try and
+        # read back the contents of the dtbo attribute and see if
+        # it is non-empty
+
+        with open(os.path.join(self.sysfs_dir, 'dtbo'),
+                'rb', buffering=0) as f:
+            # The entire DTBO file has to be read in a single syscall
+            # otherwise and IO error will occur
+            read_back = f.read(1024*1024)
+            if read_back != dtbo_data:
+                raise RuntimeError('Device tree {} cannot be applied'.format(
+                    self.dtbo_name))
 
         if not self.is_dtbo_applied():
             raise RuntimeError('Device tree {} cannot be applied.'.format(

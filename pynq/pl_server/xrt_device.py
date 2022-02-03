@@ -1,4 +1,4 @@
-#   Copyright (c) 2019, Xilinx, Inc.
+#   Copyright (c) 2019-2021, Xilinx, Inc.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -43,13 +43,15 @@ from pynq._3rdparty import xrt
 from pynq._3rdparty import ert
 
 __author__ = "Peter Ogden"
-__copyright__ = "Copyright 2019, Xilinx"
+__copyright__ = "Copyright 2019-2021, Xilinx"
 __email__ = "pynq_support@xilinx.com"
 
 
 DRM_XOCL_BO_EXECBUF = 1 << 31
 REQUIRED_VERSION_ERT = (2, 3, 0)
+ZOCL_BO_FLAGS_CACHEABLE = 1 << 24
 libc = ctypes.CDLL('libc.so.6')
+
 libc.munmap.argtypes = [ctypes.c_void_p, ctypes.c_size_t]
 libc.munmap.restype = ctypes.c_int
 
@@ -82,6 +84,9 @@ def _get_xrt_version():
     try:
         output = subprocess.run(['xbutil', 'dump'], stdout=subprocess.PIPE,
                                 universal_newlines=True)
+        if output.returncode != 0:
+            warnings.warn(
+                    'xbutil failed to run - unable to determine XRT version')
         details = json.loads(output.stdout)
         return tuple(
             int(s) for s in details['runtime']['build']['version'].split('.'))
@@ -103,7 +108,8 @@ def _format_xrt_error(err):
     return errstring
 
 
-def _xrt_allocate(shape, dtype, device, memidx):
+def _xrt_allocate(shape, dtype, device, memidx, cacheable=0, pointer=None,
+                  cache=None):
     elements = 1
     try:
         for s in shape:
@@ -112,12 +118,20 @@ def _xrt_allocate(shape, dtype, device, memidx):
         elements = shape
     dtype = np.dtype(dtype)
     size = elements * dtype.itemsize
-    bo = device.allocate_bo(size, memidx)
-    buf = device.map_bo(bo)
-    device_address = device.get_device_address(bo)
+    if pointer is not None:
+        bo, buf, device_address = pointer
+    else:
+        bo = device.allocate_bo(size, memidx, cacheable)
+        buf = device.map_bo(bo)
+        device_address = device.get_device_address(bo)
     ar = PynqBuffer(shape, dtype, bo=bo, device=device, buffer=buf,
                     device_address=device_address, coherent=False)
-    weakref.finalize(buf, _free_bo, device, bo, ar.virtual_address, ar.nbytes)
+    if pointer is not None:
+        weakref.finalize(buf, _free_bo, device, bo, ar.virtual_address,
+                         ar.nbytes)
+    if cache is not None:
+        ar.pointer = (bo, buf, device_address)
+        ar.return_to = cache
     return ar
 
 
@@ -137,10 +151,11 @@ class XrtMemory:
     def __init__(self, device, desc):
         self.idx = desc['idx']
         self.size = desc['size']
+        self.base_address = desc['base_address']
         self.desc = desc
         self.device = device
 
-    def allocate(self, shape, dtype):
+    def allocate(self, shape, dtype, **kwargs):
         """Create a new  buffer in the memory bank
 
         Parameters
@@ -151,7 +166,7 @@ class XrtMemory:
             Data type of the array
 
         """
-        buf = _xrt_allocate(shape, dtype, self.device, self.idx)
+        buf = _xrt_allocate(shape, dtype, self.device, self.idx, **kwargs)
         buf.memory = self
         return buf
 
@@ -254,7 +269,7 @@ class ErtWaitHandle:
 
 
 class XrtStream:
-    """XRT Streming Connection
+    """XRT Streaming Connection
 
     Encapsulates the IP connected to a stream. Note that the ``_ip``
     attributes will only be populated if the corresponding device
@@ -307,8 +322,8 @@ class XrtDevice(Device):
 
     _probe_priority_ = 200
 
-    def __init__(self, index):
-        super().__init__('xrt{}'.format(index))
+    def __init__(self, index, tag="xrt{}"):
+        super().__init__(tag.format(index))
         self.capabilities = {
             'REGISTER_RW': True,
             'CALLABLE': True,
@@ -318,7 +333,7 @@ class XrtDevice(Device):
         self.handle = xrt.xclOpen(index, None, 0)
         self._info = xrt.xclDeviceInfo2()
         xrt.xclGetDeviceInfo2(self.handle, self._info)
-        self.contexts = []
+        self.contexts = dict()
         self._find_sysfs()
         self.active_bos = []
         self._bo_cache = []
@@ -390,7 +405,9 @@ class XrtDevice(Device):
         if ret >= 0x80000000:
             raise RuntimeError("Invalidate Failed: " + str(ret))
 
-    def allocate_bo(self, size, idx):
+    def allocate_bo(self, size, idx, cacheable):
+        if cacheable:
+            idx |= ZOCL_BO_FLAGS_CACHEABLE
         bo = xrt.xclAllocBO(self.handle, size,
                             xrt.xclBOKind.XCL_BO_DEVICE_RAM, idx)
         if bo >= 0x80000000:
@@ -477,18 +494,19 @@ class XrtDevice(Device):
                      address, cdata, len(data))
 
     def free_bitstream(self):
-        for c in self.contexts:
-            xrt.xclCloseContext(self.handle, c[0], c[1])
-        self.contexts = []
+        for k, v in self.contexts.items():
+            xrt.xclCloseContext(self.handle, v['uuid_ctypes'], v['idx'])
+        self.contexts = dict()
 
-    def download(self, bitstream, parser=None):
+
+    def _xrt_download(self, data):
         # Keep copy of old contexts so we can reacquire them if
         # downloading fails
         old_contexts = copy.deepcopy(self.contexts)
         # Close existing contexts
-        for c in self.contexts:
-            xrt.xclCloseContext(self.handle, c[0], c[1])
-        self.contexts = []
+        for k, v in self.contexts.items():
+            xrt.xclCloseContext(self.handle, v['uuid_ctypes'], v['idx'])
+        self.contexts = dict()
 
         # Download xclbin file
         err = xrt.xclLockDevice(self.handle)
@@ -496,37 +514,58 @@ class XrtDevice(Device):
             raise RuntimeError(
                 "Could not lock device for programming - " + str(err))
         try:
-            with open(bitstream.bitfile_name, 'rb') as f:
-                data = f.read()
             err = xrt.xclLoadXclBin(self.handle, data)
             if err:
-                for c in old_contexts:
-                    xrt.xclOpenContext(self.handle, c[0], c[1], True)
+                for k, v in old_contexts:
+                    xrt.xclOpenContext(self.handle, v['uuid_ctypes'],
+                        v['idx'], True)
                 self.contexts = old_contexts
                 raise RuntimeError("Programming Device failed: " +
                                    _format_xrt_error(err))
         finally:
             xrt.xclUnlockDevice(self.handle)
 
+
+    def download(self, bitstream, parser=None):
+        with open(bitstream.bitfile_name, 'rb') as f:
+            data = f.read()
+        self._xrt_download(data)
         super().post_download(bitstream, parser)
 
-        # Setup the execution context for the new xclbin
-        if parser is not None:
-            ip_dict = parser.ip_dict
-            cu_used = 0
-            uuid = None
-            for k, v in ip_dict.items():
-                if 'index' in v:
-                    index = v['adjusted_index']
-                    uuid = bytes.fromhex(v['xclbin_uuid'])
-                    uuid_ctypes = \
-                        XrtUUID((ctypes.c_char * 16).from_buffer_copy(uuid))
-                    err = xrt.xclOpenContext(self.handle, uuid_ctypes, index,
-                                             True)
-                    if err:
-                        raise RuntimeError('Could not open CU context - {}, '
-                                           '{}'.format(err, index))
-                    self.contexts.append((uuid_ctypes, index))
+    def open_context(self, description, shared=True):
+        """Open XRT context for the compute unit"""
+
+        cu_name = description['cu_name']
+        context = self.contexts.get(cu_name)
+        if context:
+            return context['idx']
+        if _xrt_version >= (2, 6, 0):
+            cu_index = xrt.xclIPName2Index(self.handle, cu_name)
+            description['cu_index'] = cu_index
+        else:
+            cu_index = description['cu_index']
+
+        uuid = bytes.fromhex(description['xclbin_uuid'])
+        uuid_ctypes = XrtUUID((ctypes.c_char * 16).from_buffer_copy(uuid))
+        err = xrt.xclOpenContext(self.handle, uuid_ctypes, cu_index, shared)
+
+        if err:
+            raise RuntimeError('Could not open CU context - {}, {}'\
+                .format(err, cu_index))
+        # Setup the execution context for the compute unit
+        self.contexts[cu_name] = {'cu' : cu_name, 'idx': cu_index,
+            'uuid_ctypes': uuid_ctypes, 'shared': shared}
+
+        return cu_index
+
+    def close_context(self, cu_name):
+        """Close XRT context for the compute unit"""
+
+        context = self.contexts.get(cu_name)
+        if context is None:
+            raise RuntimeError('CU context ({}) is not open.'.format(cu_name))
+        xrt.xclCloseContext(self.handle, context['uuid_ctypes'], context['idx'])
+        self.contexts.pop(cu_name)
 
     def get_bitfile_metadata(self, bitfile_name):
         from .xclbin_parser import XclBin

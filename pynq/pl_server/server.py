@@ -51,14 +51,18 @@ def clear_state(dict_in):
 
     Parameters
     ----------
-    dict_in : dict
+    dict_in : obj
         Input dictionary to be cleared.
 
     """
-    if type(dict_in) is dict:
-        for i in dict_in:
-            if 'state' in dict_in[i]:
-                dict_in[i]['state'] = None
+    if not isinstance(dict_in,dict):
+        return dict_in
+
+    for k,v in dict_in.items():
+        if isinstance(v,dict):
+            dict_in[k] =  clear_state(v)
+        if k == 'state':
+            dict_in[k] = None
     return dict_in
 
 
@@ -261,6 +265,7 @@ class DeviceClient:
             if os.path.isfile(hwh_name):
                 self._ip_dict = clear_state(self._ip_dict)
                 self._gpio_dict = clear_state(self._gpio_dict)
+                self._hierarchy_dict = clear_state(self._hierarchy_dict)
             else:
                 self.clear_dict()
         if timestamp is not None:
@@ -306,7 +311,10 @@ class DeviceClient:
 
         """
         self.client_request()
-        self._ip_dict[ip_name]['state'] = data
+        if ip_name in self._ip_dict:
+            self._ip_dict[ip_name]['state'] = data
+        elif ip_name in self._mem_dict:
+            self._mem_dict[ip_name]['state'] = data
         self.server_update()
 
     def update_partial_region(self, hier, parser):
@@ -338,7 +346,7 @@ class DeviceClient:
                     merged_ip_dict.pop(k)
 
             for k, v in parser.ip_dict.items():
-                parent = k.split('/')[0] + '/' + v['mem_id']
+                parent = '/'.join(k.split('/')[:-1]) + '/' + v['mem_id']
                 if parent in self._ip_dict:
                     ip_name = v['fullpath']
                     merged_ip_dict[ip_name] = dict()

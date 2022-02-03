@@ -43,7 +43,6 @@ import subprocess
 import os
 import warnings
 from datetime import datetime
-from pynq.utils import download_overlays
 
 
 # Requirement
@@ -128,7 +127,8 @@ extend_pynq_package(['pynq/lib/pynqmicroblaze',
                      'pynq/lib/arduino',
                      'pynq/lib/pmod',
                      'pynq/lib/rpi',
-                     'pynq/lib/logictools'])
+                     'pynq/lib/logictools',
+                     'pynq/pl_server/default.xclbin'])
 
 
 # Video source files
@@ -216,6 +216,7 @@ def copy_board_notebooks(staging_notebooks_dir, board):
 
 # Copy notebooks in boards/BOARD/OVERLAY/notebooks
 def copy_overlay_notebooks(staging_notebooks_dir, board):
+    from pynq.utils import download_overlays
     board_folder = 'boards/{}'.format(board)
     download_overlays(board_folder, fail_at_lookup=True, cleanup=True)
     overlay_dirs = find_overlays(board_folder)
@@ -234,7 +235,7 @@ def copy_documentation_files(staging_notebooks_dir):
     notebooks_getting_started_dst_img_dir = os.path.join(
         staging_notebooks_dir, 'getting_started', 'images')
     notebooks_getting_started_src_dir = os.path.join(
-        'docs', 'source')
+        'docs', 'source', 'getting_started')
     notebooks_getting_started_src_img_dir = os.path.join(
         'docs', 'source', 'images')
 
@@ -251,6 +252,15 @@ def copy_documentation_files(staging_notebooks_dir):
     for dst, files in doc_files:
         for f in files:
             copy_file(f, dst)
+            if os.path.splitext(f)[1] == '.ipynb':
+                dest_nb = os.path.join(dst, os.path.split(f)[1])
+                # rewrite image paths in notebooks
+                with open(dest_nb, 'r+') as nb:
+                    text = nb.read()
+                    text = re.sub(r'\(../images', r'(images', text)
+                    nb.seek(0)
+                    nb.truncate(0)
+                    nb.write(text)
 
 
 # Rename and copy getting started notebooks
@@ -355,6 +365,8 @@ class BuildExtension(build_ext):
                           "libaudio.so")
             self.run_make("pynq/lib/_pynq/_xiic/", "pynq/lib/",
                           "libiic.so")
+            self.run_make("pynq/lib/_pynq/_pcam5c/", "pynq/lib/video/",
+                          "libpcam5c.so")
         build_ext.run(self)
         copy_notebooks()
         self.install_overlays()
@@ -375,6 +387,12 @@ extend_pynq_package(
      "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/vtc/src",
      "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/iic/src",
      "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/gpio/src",
+     "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/iicps/src",
+     "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/scugic/src",
+     "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/axivdma/src",
+     "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/mipicsiss/src",
+     "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/csi/src",
+     "pynq/lib/_pynq/embeddedsw/XilinxProcessorIPLib/drivers/dphy/src",
      "pynq/lib/_pynq/embeddedsw/lib/bsp/standalone/src",
      "pynq/lib/_pynq/embeddedsw_lib.mk",
      "pynq/lib/_pynq/common",
@@ -385,6 +403,7 @@ extend_pynq_package(
      "pynq/lib/_pynq/_displayport",
      "pynq/lib/_pynq/_xhdmi",
      "pynq/lib/_pynq/_xiic",
+     "pynq/lib/_pynq/_pcam5c",
      "pynq/notebooks",
      "pynq/tests",
      "pynq/lib/tests"

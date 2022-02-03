@@ -43,17 +43,19 @@ build_bitstreams () {
 	cd $orig_dir
 }
 
-create_link_file () {
-	local file=$1
-	local link=$2
-	md5_hash=$(md5sum $file | awk '{print $1}')
+get_opendownloads_file() {
+    local remote_file=$1
+    local local_file=$2
 
-	cat > $file.link << EOL
-{
-    "url": "${link}",
-    "md5sum": "${md5_hash}"
-}
-EOL
+    curl -L -s $remote_file --output $local_file 2>/dev/null
+    ftype=$(file $local_file | awk '{print $2}')
+
+    # if opendownloads returns an HTML type, then most likely a 404 page...
+    # TODO: something cleaner, but for now, remove the file like it never arrived
+    if [ "$ftype" = "HTML" ]; then
+	rm $local_file
+    fi
+    
 }
 
 get_bitstreams () {
@@ -68,22 +70,19 @@ get_bitstreams () {
 		if [ ! -e $ol.bit ] || [ ! -e $ol.hwh ]; then
 			rm -f $ol.bit $ol.hwh
 			set +e
-			curl -L -s ${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.bit --output $ol.bit 2>/dev/null
-			curl -L -s ${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.hwh --output $ol.hwh 2>/dev/null
+			get_opendownloads_file ${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.bit $ol.bit
+			get_opendownloads_file ${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.hwh $ol.hwh
 			set -e
 			if [ ! -s $ol.bit ] || [ ! -s $ol.hwh ] || [ ! -e $ol.bit ] || [ ! -e $ol.hwh ]; then
 				# download failed for .bit, .hwh, or both. 
 				# Cleanup to avoid potential issues later
 				rm -f $ol.bit
 				rm -f $ol.hwh
-			else
-				create_link_file "$ol.bit" "${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.bit"
-				create_link_file "$ol.hwh" "${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.hwh"
 			fi
 		fi
 		if [ ! -e $ol.xsa ]; then
 			set +e
-			curl -L -s ${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.xsa --output $ol.xsa 2>/dev/null
+			get_opendownloads_file ${PYNQ_OVERLAYS_REMOTE_PREFIX}$board.$ol.$tcl_md5.xsa $ol.xsa
 			set -e
 			if [ ! -s $ol.xsa ] || [ ! -e $ol.xsa ]; then
 				rm -f $ol.xsa

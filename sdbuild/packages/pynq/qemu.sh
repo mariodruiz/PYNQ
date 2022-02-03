@@ -5,15 +5,18 @@ set -e
 set -x
 
 . /etc/environment
+for f in /etc/profile.d/*.sh; do source $f; done
+
 export HOME=/root
 export BOARD=${PYNQ_BOARD}
 
 cd /home/xilinx
 mkdir -p jupyter_notebooks
 
+
 cd pynq_git
 BOARD=${PYNQ_BOARD} PYNQ_JUPYTER_NOTEBOOKS=${PYNQ_JUPYTER_NOTEBOOKS} \
-python3 -m pip install dist/*.tar.gz --upgrade --no-deps
+     python3 -m pip install dist/*.tar.gz --upgrade --no-deps --no-use-pep517
 cd ..
 
 old_hostname=$(hostname)

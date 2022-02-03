@@ -27,8 +27,8 @@ the corresponding board files can be downloaded as shown below.
 
 * `Download the Pynq-Z1 board files
   <https://github.com/cathalmccabe/pynq-z1_board_files/raw/master/pynq-z1.zip>`_
-* `Download the Pynq-Z2 board files
-  <https://dpoauwgwqsy2x.cloudfront.net/Download/pynq-z2.zip>`_
+* `Download the Pynq-Z2 board files (see Downloads section)
+  <https://www.tul.com.tw/productspynq-z2.html>`_
   
 Installing these files in Vivado allows the board to be selected when creating
 a new project. This will configure the Zynq PS settings.
@@ -37,7 +37,7 @@ To install the board files, extract, and copy the board files folder to:
 
    .. code-block:: console
 
-      <Xilinx installation directory>\Vivado\<version>\data\boards
+      <Xilinx installation directory>/Vivado/<version>/data/boards/board_files
 
 If Vivado is open, it must be restart to load in the new project files before a
 new project can be created.

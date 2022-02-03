@@ -30,7 +30,6 @@
 from .registers import Register
 from .mmio import MMIO
 from .uio import UioController
-from .xlnk import Xlnk
 from .pl import PL
 from .ps import Clocks
 from .gpio import GPIO
@@ -53,7 +52,7 @@ __copyright__ = "Copyright 2016, Xilinx"
 __email__ = "pynq_support@xilinx.com"
 
 __all__ = ['lib', 'tests']
-__version__ = '2.6.2'
+__version__ = '2.7.0'
 # This ID will always be tied to a specific release tag
 # since the file will be modified to edit the version
 __git_id__ = "$Id$"

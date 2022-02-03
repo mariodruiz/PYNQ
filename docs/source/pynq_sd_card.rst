@@ -1,11 +1,16 @@
 .. _pynq-sd-card:
 
-************
-PYNQ SD Card
-************
+******************
+PYNQ SD Card image
+******************
 
-The PYNQ images for supported boards are provided precompiled as 
-downloadable SD card images, so you do not need to rerun this flow for these 
+This page will explain how the PYNQ SD card image can be built for PYNQ
+embedded platforms (Zynq, Zynq Ultrascale+). SD card images are not use with 
+Alveo and other XRT platforms. For Alveo/XRT platforms, PYNQ is installed on 
+the host OS. 
+
+The PYNQ images for supported boards are provided as precompiled 
+downloadable SD card images. You do not need to rerun this flow for these 
 boards unless you want to make changes to the image.
 
 This flow can also be used as a starting point to build a PYNQ image for another
@@ -31,8 +36,7 @@ It is recommended to use a Ubuntu OS to build the image. The currently supported
 ================  ==================
 Supported OS      Code name
 ================  ==================   
-Ubuntu 16.04       xenial
-Ubuntu 18.04       bionic
+Ubuntu 18.04       Bionic
 ================  ==================
 
 Use Vagrant to prepare Ubuntu OS
@@ -71,18 +75,18 @@ If you do not have a Ubuntu OS, and you need a Ubuntu VM, do the following:
         vagrant up
 
      The above command will take about 20 minutes to finish.
-     By default, our vagrant file will prepare a Ubuntu 16.04 OS. If you would
+     By default our vagrant file will prepare a Ubuntu 20.04 OS. If you would
      like to use another OS, do:
      
      .. code-block:: console
     
         vagrant up <ubuntu_code_name>
 
-     For example, you can do the following to prepare a Ubuntu 18.04 OS:
+     For example, you can do the following to prepare a Ubuntu 20.04 OS:
      
      .. code-block:: console
     
-        vagrant up bionic
+        vagrant up focal
 
      The supported OS and their corresponding code names are listed in the 
      beginning of this section.
@@ -128,6 +132,7 @@ If you do not have a Ubuntu OS, and you need a Ubuntu VM, do the following:
      v2.4               2018.3
      v2.5               2019.1
      v2.6               2020.1
+     v2.7               2020.2
      ================  ================
 
 Use existing Ubuntu OS
@@ -153,12 +158,12 @@ Once you have the building environment ready, you can start to build the image
 following the steps below. You don't have to rerun the `setup_host.sh`.
 
   1. Source the appropriate settings for PetaLinux and Vitis. 
-     Suppose you are using Xilinx 2020.1 tools:
+     Suppose you are using Xilinx 2020.2 tools:
 
      .. code-block:: console
 
-        source <path-to-vitis>/Vitis/2020.1/settings64.sh
-        source <path-to-petalinux>/petalinux-2020.1-final/settings.sh
+        source <path-to-vitis>/Vitis/2020.2/settings64.sh
+        source <path-to-petalinux>/petalinux-2020.2-final/settings.sh
         petalinux-util --webtalk off
 
   2. Make sure you have the appropriate Vivado licenses to build for your
@@ -352,7 +357,7 @@ officially supported boards. This means, in particular, that:
 Building from a board repository
 ================================
 
-To build from a third-party board repository pass the ``${BOARDDIR}`` variable to the
+To build from a third-party board repository, pass the ``BOARDDIR`` variable to the
 sdbuild makefile.
 
 .. code-block:: console
@@ -360,6 +365,6 @@ sdbuild makefile.
    cd <PYNQ repository>/sdbuild/
    make BOARDDIR=${BOARD_REPO}
 
-The board repo should be provided as an absolute path. The ``${BOARDDIR}`` variable
-can be combined with the ``${BOARD}`` variable if the repository contains multiple
+The board repo should be provided as an absolute path. The ``BOARDDIR`` variable
+can be combined with the ``BOARDS`` variable if the repository contains multiple
 boards and only a subset should be built.
