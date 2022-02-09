@@ -44,3 +44,4 @@ by many other software developers working at the application level.
     pynq_overlays/pynqz1
     pynq_overlays/pynqz2
     pynq_overlays/zcu104
+    Composable Overlay <https://github.com/Xilinx/PYNQ_Composable_Pipeline>

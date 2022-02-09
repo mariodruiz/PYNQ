@@ -28,11 +28,11 @@ I can't connect to my board
       ping 192.168.2.99
       
       
-   (The default IP address of the board is : 192.168.2.99)
+   (The default static IP address of the board is : 192.168.2.99)
    
-3. Log on to the board through a terminal, and check the system is
-   running, i.e. that the Linux shell is accessible. See below for details on
-   logging on with a terminal.
+3. Check the instructions for :ref:`opening-a-serial-terminal` and log in to 
+   the board. Check the system is
+   running, i.e. that the Linux shell is accessible in the terminal.
 
 4. If you can't ping the board, or the host PC, check your network settings.
          
@@ -55,12 +55,13 @@ centre-positive barrel jack). Make sure Jumper JP5 is set to USB or REG (for
 power adapter). If powering the board via USB, make sure the USB port is fully
 powered. Laptops in low power mode may reduce the available power to a USB port.
 
-The bitstream is not loading (No Green LED)
--------------------------------------------
+The bitstream is not loading (No "Done" LED)
+--------------------------------------------
 
 * Check the Micro-SD card is inserted correctly (the socket is spring loaded, so
   push it in until you feel it click into place).
-* Check jumper JP4 is set to SD (board boots from Micro SD card).
+* Check if your board has a boot jumper or switch and that it is set to boot from 
+  SD. You may need to check the user manual for your board. 
 * Connect a terminal and verify that the Linux boot starts.
 
 If the Linux boot does not start, or fails, you may need to (re)flash the PYNQ
@@ -81,7 +82,7 @@ the following command in Linux command line:
 
    .. code-block:: console
    
-      ifconfig
+      Ip a
 
 Check the settings for *eth0* and look for an IP address.
 
@@ -96,9 +97,9 @@ using WiFi. (You may need to change settings on your Router to enable the
 Wireless network to communicate with your LAN - check your equipment
 documentation for details.)
    
-You can also connect a WiFi dongle to the board, and set up the board to connect
-to the wireless network. Your host PC can then connect to the same wireless
-network to connect to the board.
+You can also connect a USB WiFi dongle to the board, and set up the board to 
+connect to the wireless network. Your host PC can then connect to the same 
+wireless network to connect to the board.
 
 How can I enable wireless access point?
 ---------------------------------------
@@ -281,12 +282,30 @@ You can then add or modify the line in the `jupyter_notebook_config.py` file
 General Questions
 =================
 
-Does PYNQ support Python 2.7?
+Does PYNQ support Python 2.X?
 -----------------------------
 
-The PYNQ image is based on Ubuntu which includes Python 2.7 in the root file 
-system. The Python package *pynq*, however, is based on Python 3.6; 
-this python package is not compatible with Python 2.7.
+The Python package *pynq*, is based on Python 3.X; 
+this python package is not compatible with Python 2.X.
+The latest PYNQ image is based on Ubuntu 20.04 which now has Python 3.X as the 
+default version. 
+If you need to run PYNQ on the command line you can do this by calling the
+`python` command with starts Python 3.X. `pip` can be used to install Python (3.X) 
+packages. 
+
+In earlier versions of Ubuntu Python 2.X was the default. It isn't practical to 
+remove Python 2.X or switch the default to Python 3.X as other parts of the system
+relied on it. As as workaround, Python 3 (required for PYNQ) was installed 
+alongside Python 2.X. 
+
+Jupyter kernels used Python 3.X automatically and this was transparent to the user.
+However, to use PYNQ on the command line, the `python3` command needed to be used 
+(instead of `python` which would start Python 2.X), along with the `pip3` command 
+to install packages (instead of `pip`).
+ 
+With the latest PYNQ image, the `python` command can be used to start Python 3.X 
+and `pip` can be used to install packages. 
+
 
 Where can I find the overlay bitstreams?
 ----------------------------------------
@@ -332,49 +351,4 @@ We recommend you use a card at least 8GB in size and at least class 4 speed
 rating.
 
 
-How do I connect to the board using a terminal on Windows?
-----------------------------------------------------------
 
-To do this, you need to connect to the board using a terminal:
-
-Connect a Micro USB cable to the board and your computer, and use a terminal
-emulator (puTTY, TeraTerm etc) to connect to the board.
-   
-   Terminal Settings: 
-   
-   * 115200 baud
-   * 8 data bits
-   * 1 stop bit
-   * No Parity
-   * No Flow Control
-   
-How do I connect to the board using a terminal on Mac OS/Linux?
----------------------------------------------------------------
-
-Open a Terminal window on MacOS or an XTerm (or your favorite terminal program) on Linux.
-
-Issue the following command to view current serial devices.
-
-   .. code-block:: console
-
-      ls /dev/cu.usb*
-
-Connect a Micro USB cable to the board and your computer.
-
-Issue the following command again to identify the device.
-
-   .. code-block:: console
-
-      ls /dev/cu.usb*
-
-Identify the change of items in the list, and issue the following command:
-
-   .. code-block:: console
-
-      screen /dev/<device> 115200 -L
-
-For example, if the difference was *cu.usbmodem0004*, the command would be:
-
-   .. code-block:: console
-
-      screen /dev/cu.usbmodem0004 115200 -L

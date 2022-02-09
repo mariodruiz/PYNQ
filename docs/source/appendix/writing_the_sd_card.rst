@@ -1,8 +1,17 @@
 .. _writing-the-sd-card:
 
-************************
-Writing an SD Card Image
-************************
+
+****************************************
+Writing a PYNQ image to an SD Card Image
+****************************************
+
+.. note:: 
+   Check if you need to create a bootable PYNQ image for your board, or if you 
+   can install PYNQ onto your host OS. 
+
+
+* Download an image from the `PYNQ boards webpage <http://www.pynq.io/board>`_,
+  or generate an image for your custom board.
 
 Windows
 =======

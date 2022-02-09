@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Python productivity for Zynq® (Pynq) documentation build configuration file, 
+# PYNQ: Python productivity for Xilinx platforms; 
+# documentation build configuration file, 
 # created by
 # sphinx-quickstart on Mon Mar 28 22:10:04 2016.
 #
@@ -276,7 +277,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pythononzynqpynq', 'Python productivity for Zynq (Pynq) Documentation',
+    (master_doc, 'pythononzynqpynq', 'PYNQ: Python productivity for Xilinx platforms - documentation',
      [author], 1)
 ]
 
@@ -290,7 +291,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PythononZynqPynq', 'Python productivity for Zynq (Pynq) Documentation',
+    (master_doc, 'PythononZynqPynq', 'PYNQ: Python productivity for Xilinx platforms - documentation',
      author, 'PythononZynqPynq', 'One line description of project.',
      'Miscellaneous'),
 ]

@@ -9,11 +9,11 @@ PYNQ Introduction
 
 PYNQ is an open-source project from Xilinx®. It provides a Jupyter-based 
 framework with Python APIs for using Xilinx platforms. 
-PYNQ supports Zynq® and Zynq Ultrascale+™, Zynq RFSoC™, Alveo™ and AWS-F1 
+PYNQ supports Zynq® and Zynq Ultrascale+™, Zynq RFSoC™, Kria, Alveo™ and AWS-F1 
 instances. 
 
 PYNQ enables architects, engineers
-and programmers who design embedded systems to use Zynq devices, without having
+and programmers to use Xilinx platforms without having
 to use ASIC-style design tools to design programmable logic circuits.
 
 
@@ -23,7 +23,7 @@ PYNQ Background
 * Programmable logic circuits are presented as hardware libraries called
   *overlays*.  These overlays are analogous to software libraries.  A software
   engineer can select the overlay that best matches their application.  The
-  overlay can be accessed through an Python API. Creating a new overlay still 
+  overlay can be accessed through a Python API. Creating a new overlay still 
   requires engineers with expertise in designing programmable logic circuits.  
   The key difference however, is the
   *build once, re-use many times* paradigm. Overlays, like software libraries,
@@ -56,10 +56,11 @@ PYNQ Background
 * PYNQ is an open-source project that aims to work on any computing platform and
   operating system.  This goal is achieved by adopting a web-based architecture,
   which is also browser agnostic.  We incorporate the open-source Jupyter
-  notebook infrastructure to run an Interactive Python (IPython) kernel and a
-  web server directly on the ARM processor of the Zynq device.  The web server
+  notebook/Lab infrastructure to run an Interactive Python (IPython) kernel and a
+  web server directly on the ARM processor of the Zynq device or a host CPU for
+  Xilinx PCIe platforms.  The web server
   brokers access to the kernel via a suite of browser-based tools that provide a
-  dashboard, bash terminal, code editors and Jupyter notebooks.  The browser
+  dashboard, bash terminal, code editors and Jupyter Lab.  The browser
   tools are implemented with a combination of JavaScript, HTML and CSS and run
   on any modern browser.
 
@@ -72,7 +73,7 @@ improve Xilinx system design:
 #. A high-level productivity language (Python in this case)
 #. FPGA overlays with extensive APIs exposed as Python libraries 
 #. A web-based architecture served from the embedded processors, and
-#. The Jupyter Notebook framework deployed in an embedded context 
+#. The Jupyter Notebook/Lab framework 
 
 
 .. toctree::
@@ -80,8 +81,10 @@ improve Xilinx system design:
    :hidden:
    
    getting_started
+   pynq_tutorials
    pynq_overlays
    pynq_libraries
+   pynq_peripherals
    overlay_design_methodology
    pynq_sd_card
    pynq_package

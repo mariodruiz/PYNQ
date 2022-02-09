@@ -6,8 +6,8 @@ PYNQ SD Card image
 
 This page will explain how the PYNQ SD card image can be built for PYNQ
 embedded platforms (Zynq, Zynq Ultrascale+). SD card images are not use with 
-Alveo and other XRT platforms. For Alveo/XRT platforms, PYNQ is installed on 
-the host OS. 
+Alveo and other XRT platforms (including Kria). 
+For Alveo/XRT platforms, PYNQ is installed on the host OS. 
 
 The PYNQ images for supported boards are provided as precompiled 
 downloadable SD card images. You do not need to rerun this flow for these 

@@ -2,7 +2,7 @@
 
 ![python](https://github.com/Xilinx/PYNQ/workflows/Python/badge.svg)
 
-PYNQ is an open-source project from Xilinx that makes it easy to design embedded systems with Zynq All Programmable Systems on Chips (APSoCs). Using the Python language and libraries, designers can exploit the benefits of programmable logic and microprocessors in Zynq to build more capable and exciting embedded systems.
+PYNQ is an open-source project from Xilinx that makes it easier to develop and use and create designs for Xilinx Platforms. Using the Python language and libraries, designers can exploit the benefits of programmable logic and and build more capable and exciting systems.
 PYNQ users can now create high performance embedded applications with
 -	parallel hardware execution
 -	high frame-rate video processing
@@ -11,17 +11,17 @@ PYNQ users can now create high performance embedded applications with
 -	high bandwidth IO
 -	low latency control
 
-See the <a href="http://www.pynq.io/" target="_blank">PYNQ webpage</a> for an overview of the project, and find <a href="http://pynq.readthedocs.io" target="_blank">documentation on ReadTheDocs</a> to get started. 
+See the <a href="http://www.pynq.io/" target="_blank">PYNQ webpage</a> for an overview of the project, and find <a href="http://pynq.readthedocs.io" target="_blank">PYNQ documentation on ReadTheDocs</a> to get started. 
 
 ## Precompiled Image
 
-The project currently supports <a href="http://www.pynq.io/board.html" target="_blank">multiple boards</a>. 
+The project currently supports <a href="http://www.pynq.io/board.html" target="_blank">multiple platforms</a> including Zynq, Zynq Ultrascale+. RFSoC, Kria and XRT supported hardware which includes Alveo and AWS-F1.  
 
-You can download a precompiled image, write the image to a micro SD card, and boot the board from the micro SD card. 
+For embedded Zynq platforms you can download a PYNQ image, write it to a micro SD card which is used to boot the board. You can start exploring your board with PYNQ in minutes. For Alveo and AWS-F1 and Kria you can install PYNQ to your host OS.
 
 ## Quick Start
 
-See the <a href="http://pynq.readthedocs.io/en/latest/getting_started.html" target="_blank">Quickstart guide</a> for details on writing the image to an SD card, and getting started with a PYNQ-enabled board.
+See the <a href="http://pynq.readthedocs.io/en/latest/getting_started.html" target="_blank">Quickstart guide</a> for details on getting started with a PYNQ-enabled platform.
 
 ## Python Source Code
 
@@ -45,7 +45,7 @@ In Linux, you can rebuild the overlay by running *make* in the corresponding ove
 
 ## Alveo support
 
-Starting from PYNQ version `2.5.1`, Alveo support has also been introduced. It is now possible to use PYNQ to tap into the potential of hardware acceleration in the data center space.
+Starting from PYNQ version `2.5.1`, Alveo support has also been introduced which includes AWS-F1. It is now possible to use PYNQ to tap into the potential of hardware acceleration in the data center space.
 
 To get PYNQ on an Alveo-enabled system, simply install it through PIP:
 
