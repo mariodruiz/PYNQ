@@ -11,12 +11,12 @@ to the `PYNQ support forum <https://discuss.pynq.io/c/tutorials-workshops/15>`_.
 You can submit a pull request to the `PYNQ GitHub repository <https://github.com/Xilinx/pynq>`_
 linking your tutorial from this page. 
 
-.. |youtube_icon| image:: ./images/youtube_social_circle_white.png
-.. |jupyter_icon| image:: ./images/jupyter.png 
-.. |vivado_icon| image:: ./images/vivado.png 
-.. |python_icon| image:: ./images/python.png 
-.. |blog_icon| image:: ./images/blog.png 
-.. |vitis_icon| image:: ./images/vitis_hls.png 
+.. |youtube_icon| image:: ./images/youtube_social_circle_white.png :alt: video
+.. |jupyter_icon| image:: ./images/jupyter.png :alt: Jupyter Notebook
+.. |vivado_icon| image:: ./images/vivado.png :alt: Vivado hardware design
+.. |python_icon| image:: ./images/python.png :alt: Python code
+.. |blog_icon| image:: ./images/blog.png :alt: Blog
+.. |vitis_icon| image:: ./images/vitis_hls.png :alt: Vitis HLS project 
 
 PYNQ Workshop
 =============
@@ -34,16 +34,16 @@ The material is based on the PYNQ-Z2 board but can be used on other PYNQ boards.
 Using PYNQ
 ==========
 
-* `Introduction to Jupyter Lab running on PYNQ <https://youtu.be/r6N0G0ekV8w>`_ |jupyter_icon| |youtube_icon|
-* `Exploring the PYNQ environment with Jupyter Lab <https://youtu.be/Y4l8H1jZ5Y0>`_ |jupyter_icon| |youtube_icon|
-* `Example of basic visualisation with Jupyter <https://youtu.be/MlU-tstNYp0>`_ |jupyter_icon| |youtube_icon|
+* `Introduction to Jupyter Lab running on PYNQ <https://youtu.be/r6N0G0ekV8w>`_ |youtube_icon| |jupyter_icon| 
+* `Exploring the PYNQ environment with Jupyter Lab <https://youtu.be/Y4l8H1jZ5Y0>`_ |youtube_icon| |jupyter_icon| 
+* `Example of basic visualisation with Jupyter <https://youtu.be/MlU-tstNYp0>`_ |youtube_icon| |jupyter_icon| 
 * `What’s in My Bitstream - A Pythonic Approach to Discovering FPGA Contents <https://discuss.pynq.io/t/whats-in-my-bitstream-a-pythonic-approach-to-discovering-fpga-contents/653>`_ |blog_icon| |python_icon|
-* `Example of using AXI GPIO <https://youtu.be/TpCax4yjxUM>`_ |jupyter_icon| |youtube_icon|
-* `Example of using MMIO <https://youtu.be/zbumITJQ2Z8>`_ |jupyter_icon| |youtube_icon|
-* `Using Register Map <https://youtu.be/vK1cEEdKAds>`_ |jupyter_icon| |youtube_icon|
-* `Example of a allocating memory (the memory can be used from the programmable logic) <https://youtu.be/Z6BkKAleLxc>`_ |jupyter_icon| |youtube_icon|
+* `Example of using AXI GPIO <https://youtu.be/TpCax4yjxUM>`_ |youtube_icon| |jupyter_icon| 
+* `Example of using MMIO <https://youtu.be/zbumITJQ2Z8>`_ |youtube_icon| |jupyter_icon| 
+* `Using Register Map <https://youtu.be/vK1cEEdKAds>`_ |youtube_icon| |jupyter_icon| 
+* `Example of a allocating memory (the memory can be used from the programmable logic) <https://youtu.be/Z6BkKAleLxc>`_ |youtube_icon| |jupyter_icon| 
 * `FPGA data movement with NumPy <https://discuss.pynq.io/t/fpga-data-movement-using-numpy/734>`_ |blog_icon| |python_icon|
-* `Example of using the AXI DMA <https://youtu.be/K4OkNH17hiA>`_ |jupyter_icon| |youtube_icon|
+* `Example of using the AXI DMA <https://youtu.be/K4OkNH17hiA>`_ |youtube_icon| |jupyter_icon| 
 
 
 IP Examples
