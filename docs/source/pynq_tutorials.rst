@@ -11,12 +11,12 @@ to the `PYNQ support forum <https://discuss.pynq.io/c/tutorials-workshops/15>`_.
 You can submit a pull request to the `PYNQ GitHub repository <https://github.com/Xilinx/pynq>`_
 linking your tutorial from this page. 
 
-.. |youtube_icon| image:: ./images/youtube_social_circle_white.png :alt: video
-.. |jupyter_icon| image:: ./images/jupyter.png :alt: Jupyter Notebook
-.. |vivado_icon| image:: ./images/vivado.png :alt: Vivado hardware design
-.. |python_icon| image:: ./images/python.png :alt: Python code
-.. |blog_icon| image:: ./images/blog.png :alt: Blog
-.. |vitis_icon| image:: ./images/vitis_hls.png :alt: Vitis HLS project 
+.. |youtube_icon| image:: ./images/youtube_social_circle_white.png 
+.. |jupyter_icon| image:: ./images/jupyter.png 
+.. |vivado_icon| image:: ./images/vivado.png 
+.. |python_icon| image:: ./images/python.png 
+.. |blog_icon| image:: ./images/blog.png 
+.. |vitis_icon| image:: ./images/vitis_hls.png 
 
 PYNQ Workshop
 =============
