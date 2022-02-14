@@ -29,9 +29,9 @@ options:
 3. Direct Ethernet connection from your board to your PC 
 
 For the best experience with PYNQ, you should connect your board to a 
-network with internet access (usually options 1 & 2). 
+network with access to the Internet (usually options 1 & 2).
 This will allow you to update your board and easily install new packages 
-including PYNQ Overlays. 
+including PYNQ Overlays.
 
 For WiFi (option 1) you need a supported :ref:`usb-wifi-device` and to follow the
 steps to :ref:`configure WiFi on your 
@@ -77,7 +77,7 @@ Board Setup
   4. Connect the USB cable to your PC/Laptop, and to the **PROG - UART / J14**
      MicroUSB port on the board
 
-  5. Connect your USB Wifi Dongle or Ethernet cable by following 
+  5. Connect your USB WiFi Dongle or Ethernet cable by following
      the instructions below
 
   6. Turn the power switch to the *ON* position and check the boot sequence

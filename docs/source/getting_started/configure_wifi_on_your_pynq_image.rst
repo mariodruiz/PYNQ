@@ -25,10 +25,10 @@ This is a Python file that runs when the board starts up.
 
 .. code-block:: Python
 
-   \#from pynq.lib import Wifi
+   #from pynq.lib import Wifi
 
-   \#port = Wifi()
-   \#port.connect('your_ssid', 'your_password', auto=True)
+   #port = Wifi()
+   #port.connect('your_ssid', 'your_password', auto=True)
 
 * Replace `your_ssid` with the SSID of the local WiFi network you want the board
   to connect to, and replace `your_password` with the WiFi password.  
@@ -37,5 +37,12 @@ This is a Python file that runs when the board starts up.
 
 When you turn on your board with this MicroSD card, it should automatically 
 connect to the WiFi network you specified.
+
+You can find the IP by first connecting a terminal to the board, then running
+the following command in Linux command line:
+
+   .. code-block:: console
+
+      ip a show wlan0
 
 Continue to :ref:`connecting-to-jupyter-notebook`.

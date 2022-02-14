@@ -38,7 +38,7 @@ Example Notebooks
 PYNQ uses the Jupyter Notebook environment to provide examples and documentation.
 Using your browser you can view and run the notebook documentation interactively.
 
-The Getting_Started folder in the Jupyter home area includes some introductory 
+The getting_started folder in the Jupyter home area includes some introductory
 Jupyter notebooks. 
  
 .. image:: ../images/getting_started_notebooks.png

@@ -82,7 +82,7 @@ the following command in Linux command line:
 
    .. code-block:: console
    
-      Ip a
+      ip a
 
 Check the settings for *eth0* and look for an IP address.
 
@@ -350,5 +350,5 @@ What type of Micro SD card do I need?
 We recommend you use a card at least 8GB in size and at least class 4 speed
 rating.
 
-
-
+Check out this blog to understand more about SD quality
+`What’s in your SD Card? Retail vs Industrial Flash Memory <https://discuss.pynq.io/t/whats-in-your-sd-card-retail-vs-industrial-flash-memory/2003 >`_

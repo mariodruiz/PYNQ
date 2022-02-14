@@ -22,7 +22,7 @@ PYNQ Workshop
 =============
 
 The `PYNQ workshop material <https://github.com/Xilinx/PYNQ_Workshop>`_ is an introduction
-training workshop developed but the PYNQ team. It includes PDF presentations and hands-on 
+training workshop developed by the PYNQ team. It includes PDF presentations and hands-on
 exercises and is recommended for beginners. 
 The material is based on the PYNQ-Z2 board but can be used on other PYNQ boards. 
 
@@ -61,7 +61,7 @@ Hardware design
 Vivado
 ^^^^^^
 
-* `Rebuilding the PYNQ base overlay (v2.6, PYNQ- <https://discuss.pynq.io/t/tutorial-rebuilding-the-pynq-base-overlay-pynq-v2-6/1993/11>`_ |blog_icon| |vivado_icon|
+* `Rebuilding the PYNQ base overlay (v2.6, PYNQ) <https://discuss.pynq.io/t/tutorial-rebuilding-the-pynq-base-overlay-pynq-v2-6/1993/>`_ |blog_icon| |vivado_icon|
 * `Creating a new Vivado hardware design for PYNQ <https://discuss.pynq.io/t/tutorial-creating-a-hardware-design-for-pynq/145>`_ |blog_icon| |vivado_icon|
 * `Creating a design with SPI, I2C, UART On PYNQ: A PL Approach (Makarena Labs) <https://www.makarenalabs.com/spi-i2c-uart-on-pynq-a-pl-approach/>`_ |blog_icon| |vivado_icon|
 * `Creating a new Verilog module Overlay <https://discuss.pynq.io/t/tutorial-creating-a-new-verilog-module-overlay/1530>`_ |blog_icon| |vivado_icon|
@@ -76,9 +76,12 @@ Two part tutorial on using PS GPIO with PYNQ, covering the Vivado design in part
 
 Two part tutorial on using a DMA with PYNQ, covering the Vivado design in part one, then using the design from PYNQ in part two. 
 
-* `Creating a Vivado hardware design with a DMA (Part 1) <https://discuss.pynq.io/t/tutorial-pynq-dma-part-1-hardware-design/3133/8>`_ |blog_icon| |vivado_icon|
+* `Creating a Vivado hardware design with a DMA (Part 1) <https://discuss.pynq.io/t/tutorial-pynq-dma-part-1-hardware-design/3133/>`_ |blog_icon| |vivado_icon|
 * `Using a DMA from PYNQ (Part 2) <https://discuss.pynq.io/t/tutorial-pynq-dma-part-2-using-the-dma-from-pynq/3134>`_ |blog_icon| |jupyter_icon|
 
+High Speed offload using the UltraScale+ Integrated 100G Ethernet Subsystem
+
+* `100 Gigabit Ethernet for RFSoC-PYNQ Overlays <https://discuss.pynq.io/t/100-gigabit-ethernet-for-rfsoc-pynq-overlays/3053>`_ |blog_icon| |vivado_icon|
 
 HLS design
 ^^^^^^^^^^
@@ -87,7 +90,7 @@ Three part tutorial on using a HLS stream IP with DMA. Part 1 covers the HLS des
 
 * `Using a HLS stream IP with DMA tutorial (Part 1: HLS design) <https://discuss.pynq.io/t/tutorial-using-a-hls-stream-ip-with-dma-part-1-hls-design/3344>`_ |blog_icon| |vitis_icon| 
 * `Using a HLS stream IP with DMA tutorial (Part 2: Vivado design) <https://discuss.pynq.io/t/tutorial-using-a-hls-stream-ip-with-dma-part-2-vivado-design/3345>`_ |blog_icon| |vivado_icon|
-* `Using a HLS stream IP with DMA tutorial (Part 3: using the HLS IP from PYNQ) <hhttps://discuss.pynq.io/t/tutorial-using-a-hls-stream-ip-with-dma-part-3-using-the-hls-ip-from-pynq/3346>`_ |blog_icon| |jupyter_icon| 
+* `Using a HLS stream IP with DMA tutorial (Part 3: using the HLS IP from PYNQ) <https://discuss.pynq.io/t/tutorial-using-a-hls-stream-ip-with-dma-part-3-using-the-hls-ip-from-pynq/3346>`_ |blog_icon| |jupyter_icon|
 
 RTL design
 ^^^^^^^^^^
@@ -102,7 +105,7 @@ Hardware Debug
 Building a PYNQ image
 =====================
 
-* `Quick Porting of PYNQ using Pre-built Images <https://discuss.pynq.io/t/quick-porting-of-pynq-using-pre-built-images/1075/15>`_ |blog_icon|
+* `Quick Porting of PYNQ using Pre-built Images <https://discuss.pynq.io/t/quick-porting-of-pynq-using-pre-built-images/1075/>`_ |blog_icon|
 * `Building PYNQ for a custom board (v2.6) <https://discuss.pynq.io/t/pynq-2-6-custom-board-image-build-method-that-works/2894>`_ |blog_icon|
 * `Deploying PYNQ with Jupyter and PetaLinux <https://discuss.pynq.io/t/deploying-pynq-and-jupyter-with-petalinux/677>`_ |blog_icon|
 
@@ -111,6 +114,8 @@ Software tutorials
 
 * `Using Docker with PYNQ <https://discuss.pynq.io/t/docker-xilinx-platforms-pynq/1962>`_ |blog_icon|
 * `Dynamically Creating Usable Python Objects <https://discuss.pynq.io/t/dynamically-creating-usable-python-objects-the-overlay-class/762>`_ |blog_icon| |jupyter_icon|
-* `Creating a PyPi package for your design <https://discuss.pynq.io/t/using-pypi-to-deliver-fpga-overlays/1031>`_ |blog_icon| |python_icon| 
+* `Creating a PyPi package for your design <https://discuss.pynq.io/t/using-pypi-to-deliver-fpga-overlays/1031>`_ |blog_icon| |python_icon|
+* `Microsoft’s VS Code for C/C++/Python Development on Xilinx Platforms <https://discuss.pynq.io/t/continuous-integration-using-jenkins-and-docker-automate-building-pynq-fpga-overlays-and-source-distribution/612>`_ |blog_icon|
+* `Continuous Integration using Jenkins and Docker: automate building PYNQ FPGA overlays and source distribution <https://discuss.pynq.io/t/continuous-integration-using-jenkins-and-docker-automate-building-pynq-fpga-overlays-and-source-distribution/612>`_ |blog_icon|
 * `Interactive C++ on the Kria-SoM in Jupyter Lab <https://discuss.pynq.io/t/interactive-c-on-the-kria-som-in-jupyter-lab/3667>`_ |blog_icon| |jupyter_icon|
 
