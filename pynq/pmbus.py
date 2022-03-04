@@ -373,22 +373,27 @@ class XrtInfoDump:
         self.parents = tuple()
 
     def get_value(self, parents=None):
-        info = self._device.device_info
+        import pyxrt
+        info = json.loads(self._device.device_info(pyxrt.xrt_info_device.electrical))[0]
+        power_rails = {}
+        for idx, val in enumerate(info['power_rails']):
+            power_rails[val['id']] = val
+
         return {
-            "0v85_v": info.m0v85,
-            "12v_aux_v": info.m12VAux,
-            "12v_aux_i": info.mAuxCurr,
-            "12v_pex_v": info.m12VPex,
-            "12v_pex_i": info.mPexCurr,
-            "12v_sw_v": info.m12vSW,
-            "1v8_v": info.m1v8Top,
-            "3v3_aux_v": info.m3v3Aux,
-            "3v3_pex_v": info.m3v3Pex,
-            "mgt0v9avcc_v": info.mMgt0v9,
-            "mgtavtt_v": info.mMgtVtt,
-            "sys_5v5_v": info.mSys5v5,
-            "vccint_v": info.mVccIntVol,
-            "vccint_i": info.mCurrent
+            "0v85_v": power_rails['vccint']['voltage'],
+            "12v_aux_v": power_rails['12v_aux']['voltage'],
+            "12v_aux_i": power_rails['12v_aux']['current'],
+            "12v_pex_v": power_rails['12v_pex']['voltage'],
+            "12v_pex_i": power_rails['12v_pex']['current'],
+            "12v_sw_v": power_rails['12v_sw']['voltage'],
+            "1v8_v": power_rails['1v8_top']['voltage'],
+            "3v3_aux_v": power_rails['3v3_aux']['voltage'],
+            "3v3_pex_v": power_rails['3v3_pex']['voltage'],
+            "mgt0v9avcc_v": power_rails['0v9_vcc']['voltage'],
+            "mgtavtt_v": power_rails['mgt_vtt']['voltage'],
+            "sys_5v5_v": power_rails['5v5_system']['voltage'],
+            "vccint_v": power_rails['vccint']['voltage'],
+            "vccint_i": power_rails['vccint']['current']
         }
 
 class XrtSensor:

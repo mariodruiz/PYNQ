@@ -39,11 +39,12 @@ import numpy as np
 from pynq.buffer import PynqBuffer
 from pynq.ps import CPU_ARCH_IS_x86
 from .device import Device
+import pyxrt
 
 from pynq._3rdparty import xrt
 from pynq._3rdparty import ert
 
-__author__ = "Peter Ogden"
+__author__ = "Peter Ogden, Mario Ruiz"
 __copyright__ = "Copyright 2019-2022, Xilinx"
 __email__ = "pynq_support@xilinx.com"
 
@@ -331,9 +332,8 @@ class XrtDevice(Device):
         }
         if _xrt_version >= REQUIRED_VERSION_ERT:
             self.capabilities['ERT'] = True
-        self.handle = xrt.xclOpen(index, None, 0)
-        self._info = xrt.xclDeviceInfo2()
-        xrt.xclGetDeviceInfo2(self.handle, self._info)
+        self.handle = pyxrt.device(index)
+        self._info = handle.get_info
         self.contexts = dict()
         self._find_sysfs()
         self.active_bos = []
@@ -342,24 +342,21 @@ class XrtDevice(Device):
         self._streams = {}
 
     def _find_sysfs(self):
-        devices = glob.glob('/sys/bus/pci/drivers/xclmgmt/*:*')
         self.sysfs_path = None
-        for d in devices:
-            with open(os.path.join(d, 'slot')) as f:
-                slot = int(f.read())
-            if slot == self._info.mPciSlot:
-                self.sysfs_path = os.path.realpath(d)
+        devices = glob.glob('/sys/bus/pci/drivers/xclmgmt/*:*')
+        bdf = self._info(pyxrt.xrt_info_device.bdf)
 
+        for dev in devices:
+            if bdf[:-1] in dev:
+                self.sysfs_path = os.path.realpath(dev)
 
     @property
     def device_info(self):
-        info = xrt.xclDeviceInfo2()
-        xrt.xclGetDeviceInfo2(self.handle, info)
-        return info
+        return self._info
 
     @property
     def name(self):
-        return self._info.mName.decode()
+        return self._info(pyxrt.xrt_info_device.name)
 
     @property
     def clocks(self):
@@ -367,13 +364,29 @@ class XrtDevice(Device):
         clock frequencies that the hardware is running at.
         Frequencies are expressed in Mega Hertz.
         """
-        clks = {}
-        idx = 0
-        for clk in self._info.mOCLFrequency:
-            if clk != 0:
-                clks['clock'+str(idx)] = {'frequency': clk}
-                idx +=1
-        return clks
+        platform = json.loads(
+            self._info(pyxrt.xrt_info_device.platform))['platforms'][0]
+        clocks = dict()
+        for idx, clk in enumerate(platform['clocks']):
+            key = 'clock'+str(idx)
+            clocks[key] = clk
+            clocks[key]['frequency'] = clk['freq_mhz']
+        return clocks
+
+    @property
+    def macs(self):
+        """Returns QSFP28 MAC addresses"""
+        platform = json.loads(
+            self._info(pyxrt.xrt_info_device.platform))['platforms'][0]
+        macs = list()
+        for m in platform['macs']:
+            macs.append(m['address'])
+        return macs
+
+    @property
+    def dynamic_regions(self):
+        """Returns dynamic_regions ID"""
+        return json.loads(self._info(pyxrt.xrt_info_device.dynamic_regions))
 
     @property
     def sensors(self):
@@ -515,7 +528,8 @@ class XrtDevice(Device):
             raise RuntimeError(
                 "Could not lock device for programming - " + str(err))
         try:
-            err = xrt.xclLoadXclBin(self.handle, data)
+            self._uuid = self.handle.load_xclbin(data)
+            self.uuid.to_string()
             if err:
                 for k, v in old_contexts:
                     xrt.xclOpenContext(self.handle, v['uuid_ctypes'],
