@@ -374,6 +374,7 @@ class XrtInfoDump:
 
     def get_value(self, parents=None):
         import pyxrt
+        import json
         info = json.loads(self._device.device_info(pyxrt.xrt_info_device.electrical))[0]
         power_rails = {}
         for idx, val in enumerate(info['power_rails']):

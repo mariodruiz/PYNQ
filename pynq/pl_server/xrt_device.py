@@ -40,6 +40,7 @@ from pynq.buffer import PynqBuffer
 from pynq.ps import CPU_ARCH_IS_x86
 from .device import Device
 import pyxrt
+import json
 
 from pynq._3rdparty import xrt
 from pynq._3rdparty import ert
@@ -333,7 +334,7 @@ class XrtDevice(Device):
         if _xrt_version >= REQUIRED_VERSION_ERT:
             self.capabilities['ERT'] = True
         self.handle = pyxrt.device(index)
-        self._info = handle.get_info
+        self._info = self.handle.get_info
         self.contexts = dict()
         self._find_sysfs()
         self.active_bos = []
