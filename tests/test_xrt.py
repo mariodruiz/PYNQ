@@ -35,7 +35,7 @@ def test_xrt_hw_emu(monkeypatch, recwarn):
     xrt = importlib.reload(pynq._3rdparty.xrt)
     assert xrt.XRT_SUPPORTED == True
     assert xrt.XRT_EMULATION == True
-    assert xrt.libcore.path == '/path/to/xrt/lib/libxrt_hwemu.so'
+    assert xrt.libc.path == '/path/to/xrt/lib/libxrt_hwemu.so'
     assert len(recwarn) == 0
 
 
@@ -64,7 +64,7 @@ def test_xrt_normal(monkeypatch, recwarn):
     xrt = importlib.reload(pynq._3rdparty.xrt)
     assert xrt.XRT_SUPPORTED == True
     assert xrt.XRT_EMULATION == False
-    assert xrt.libcore.path == '/path/to/xrt/lib/libxrt_core.so'
+    assert xrt.libc.path == '/path/to/xrt/lib/libxrt_core.so'
     assert len(recwarn) == 0
 
 
