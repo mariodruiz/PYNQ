@@ -30,7 +30,7 @@ XRT_SUPPORTED = False
 if 'XILINX_XRT' in os.environ:
     XRT_SUPPORTED = True
     XRT_EMULATION = False
-    xrt_path = xrt_path
+    xrt_path = os.environ['XILINX_XRT']
     libcoreutil = ctypes.CDLL(xrt_path + "/lib/libxrt_coreutil.so")
     libc = ctypes.CDLL(xrt_path + "/lib/libxrt_core.so")
 
