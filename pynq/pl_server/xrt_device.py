@@ -146,7 +146,7 @@ def _xrt_allocate(shape, dtype, device, memidx, cacheable=0, pointer=None,
 
 def _free_bo(device, bo, ptr, length):
     libc.munmap(ctypes.cast(ptr, ctypes.c_void_p), length)
-    xrt.xclFreeBO(device.handle, bo)
+    xrt.xrtBOFree(bo)
 
 
 class XrtMemory:
@@ -274,7 +274,7 @@ class ErtWaitHandle:
 
         """
         while not self.done:
-            self.device._handle_events(1000)
+            self.device._handle_events()
 
 
 class XrtStream:
@@ -339,7 +339,7 @@ class XrtDevice(Device):
         }
         if _xrt_version >= REQUIRED_VERSION_ERT:
             self.capabilities['ERT'] = True
-        self.handle = xrt.xclOpen(index, None, 0)
+        self.handle = xrt.xrtDeviceOpen(index)
         self._info = xrt.xclDeviceInfo2()
         xrt.xclGetDeviceInfo2(self.handle, self._info)
         self.contexts = dict()
@@ -401,15 +401,14 @@ class XrtDevice(Device):
         return self.get_memory(active_mems[0])
 
     def flush(self, bo, offset, ptr, size):
-        ret = xrt.xclSyncBO(
-            self.handle, bo, xrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE,
-            size, offset)
+        ret = xrt.xrtBOSync(
+            bo, xrt.xclBOSyncDirection.XCL_BO_SYNC_BO_TO_DEVICE, size, offset)
         if ret >= 0x80000000:
             raise RuntimeError("Flush Failed: " + str(ret))
 
     def invalidate(self, bo, offset, ptr, size):
-        ret = xrt.xclSyncBO(
-            self.handle, bo, xrt.xclBOSyncDirection.XCL_BO_SYNC_BO_FROM_DEVICE,
+        ret = xrt.xrtBOSync(
+            bo, xrt.xclBOSyncDirection.XCL_BO_SYNC_BO_FROM_DEVICE,
             size, offset)
         if ret >= 0x80000000:
             raise RuntimeError("Invalidate Failed: " + str(ret))
@@ -417,7 +416,7 @@ class XrtDevice(Device):
     def allocate_bo(self, size, idx, cacheable):
         if cacheable:
             idx |= ZOCL_BO_FLAGS_CACHEABLE
-        bo = xrt.xclAllocBO(self.handle, size,
+        bo = xrt.xrtBOAlloc(self.handle, size,
                             xrt.xclBOKind.XCL_BO_DEVICE_RAM, idx)
         if bo >= 0x80000000:
             raise RuntimeError("Allocate failed: " + str(bo))
@@ -430,7 +429,7 @@ class XrtDevice(Device):
         else:
             view = view[buf_offset:buf_offset+count]
         ptr = (ctypes.c_char * len(view)).from_buffer(view)
-        status = xrt.xclWriteBO(self.handle, bo, ptr, len(view), bo_offset)
+        status = xrt.xrtBOWrite(bo, ptr, len(view), bo_offset)
         if status != 0:
             raise RuntimeError("Buffer Write Failed: " + str(status))
 
@@ -443,12 +442,12 @@ class XrtDevice(Device):
         else:
             view = view[buf_offset:buf_offset+count]
         ptr = (ctypes.c_char * len(view)).from_buffer(view)
-        status = xrt.xclReadBO(self.handle, bo, ptr, len(view), bo_offset)
+        status = xrt.xrtBORead(bo, ptr, len(view), bo_offset)
         if status != 0:
             raise RuntimeError("Buffer Write Failed: " + str(status))
 
     def map_bo(self, bo):
-        ptr = xrt.xclMapBO(self.handle, bo, True)
+        ptr = xrt.xrtBOMap(bo)
         prop = xrt.xclBOProperties()
         if xrt.xclGetBOProperties(self.handle, bo, prop):
             raise RuntimeError('Failed to get buffer properties')
@@ -472,7 +471,7 @@ class XrtDevice(Device):
 
     def close(self):
         if self.handle:
-            xrt.xclClose(self.handle)
+            xrt.xrtDeviceClose(self.handle)
         self.handle = None
         super().close()
 
@@ -518,12 +517,11 @@ class XrtDevice(Device):
         self.contexts = dict()
 
         # Download xclbin file
-        err = xrt.xclLockDevice(self.handle)
         if err:
             raise RuntimeError(
                 "Could not lock device for programming - " + str(err))
         try:
-            err = xrt.xclLoadXclBin(self.handle, data)
+            err = xrt.xrtDeviceLoadXclbin(self.handle, data)
             if err:
                 for k, v in old_contexts:
                     xrt.xclOpenContext(self.handle, v['uuid_ctypes'],
@@ -531,8 +529,6 @@ class XrtDevice(Device):
                 self.contexts = old_contexts
                 raise RuntimeError("Programming Device failed: " +
                                    _format_xrt_error(err))
-        finally:
-            xrt.xclUnlockDevice(self.handle)
 
 
     def download(self, bitstream, parser=None):
@@ -585,8 +581,8 @@ class XrtDevice(Device):
             return self._bo_cache.pop()
         if _xrt_version < REQUIRED_VERSION_ERT:
             raise RuntimeError("XRT Version too old for PYNQ ERT support")
-        new_bo = xrt.xclAllocBO(self.handle, size, 0, DRM_XOCL_BO_EXECBUF)
-        new_ptr = xrt.xclMapBO(self.handle, new_bo, 1)
+        new_bo = xrt.xrtBOAlloc(self.handle, size, DRM_XOCL_BO_EXECBUF, 0)
+        new_ptr = xrt.xrtBOMap(new_bo)
         return ExecBo(new_bo, new_ptr, self, size)
 
     def return_exec_bo(self, bo):
@@ -627,8 +623,8 @@ class XrtDevice(Device):
                 loop.add_reader(open(base_fd, closefd=False),
                                 self._handle_events)
 
-    def _handle_events(self, timeout=0):
-        xrt.xclExecWait(self.handle, timeout)
+    def _handle_events(self):
+        xrt.xrtRunWait(self.handle)
         next_bos = []
         for bo, completion in self.active_bos:
             state = bo.as_packet(ert.ert_cmd_struct).state & 0xF
