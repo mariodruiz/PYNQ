@@ -50,6 +50,7 @@ if 'XILINX_XRT' in os.environ:
 xclDeviceHandle = ctypes.c_void_p
 xrtDeviceHandle = ctypes.c_void_p
 xrtKernelHandle = ctypes.c_void_p
+xrtXclbinHandle = ctypes.c_void_p
 xrtRunHandle = ctypes.c_void_p
 xrtKernelRunHandle = ctypes.c_void_p
 xrtBufferHandle = ctypes.c_void_p
@@ -221,6 +222,37 @@ def xrtDeviceOpenByBDF(bdf):
     libcoreutil.xrtDeviceOpenByBDF.restype = ctypes.POINTER(xrtDeviceHandle)
     libcoreutil.xrtDeviceOpenByBDF.argTypes = [ctypes.c_char_p]
     return _valueOrError(libcoreutil.xrtDeviceOpenByBDF(bdf))
+
+def xrtDeviceOpenFromXcl(xcldevhandler):
+    """
+    xrtDeviceOpenFromXcl(): Open a device from a shim xclDeviceHandle
+    :param deviceIndex: (unsigned int) Slot number of device 0 for first device, 1 for the second device...
+    """
+    libcoreutil.xrtDeviceOpenFromXcl.restype = ctypes.POINTER(xrtDeviceHandle)
+    libcoreutil.xrtDeviceOpenFromXcl.argTypes = ctypes.POINTER(xclDeviceHandle)
+    return _valueOrError(libcoreutil.xrtDeviceOpenFromXcl(xcldevhandler))
+
+def xclOpen(deviceIndex, logFileName, level):
+    """
+    xclOpen(): Open a device and obtain its handle
+    :param deviceIndex: (unsigned int) Slot number of device 0 for first device, 1 for the second device...
+    :param logFileName: (const char pointer) Log file to use for optional logging
+    :param level: (int) Severity level of messages to log
+    :return: device handle
+    """
+    libc.xclOpen.restype = ctypes.POINTER(xclDeviceHandle)
+    libc.xclOpen.argtypes = [ctypes.c_uint, ctypes.c_char_p, ctypes.c_int]
+    return libc.xclOpen(deviceIndex, logFileName, level)
+
+def xrtXclbinGetUUID(xcldevhandler, ret_uuid):
+    """
+    xrtXclbinGetUUID(): Close an device handle opened with xrtDeviceOpen()
+    :param handle: XRT device handle
+    :return: 0 on success or appropriate error number
+    """
+    libcoreutil.xrtXclbinGetUUID.restype = ctypes.c_int
+    libcoreutil.xrtXclbinGetUUID.argTypes = [ctypes.POINTER(xclDeviceHandle), ctypes.c_void_p]
+    return _valueOrError(libcoreutil.xrtXclbinGetUUID(xcldevhandler, ret_uuid))
 
 def xrtDeviceClose(handle):
     """
@@ -603,6 +635,36 @@ def xclIPName2Index(handle, name):
     libc.xclIPName2Index.restype = ctypes.c_int
     libc.xclIPName2Index.argtypes = [xclDeviceHandle, ctypes.c_char_p]
     return _valueOrError(libc.xclIPName2Index(handle, name.encode()))
+
+def xrtXclbinAllocFilename(filename):
+    """
+    xrtXclbinAllocFilename(): Allocate a xclbin using xclbin filename
+    :param filename: path to the xclbin file
+    :return: xrtXclbinHandle on success or NULL with errno set
+    """
+    libcoreutil.xrtXclbinAllocFilename.restype = xrtXclbinHandle
+    libcoreutil.xrtXclbinAllocFilename.argTypes = ctypes.c_char_p
+    return _valueOrError(libcoreutil.xrtXclbinAllocFilename(filename))
+
+def xrtXclbinGetNumKernelComputeUnits(handle):
+    """
+    xrtXclbinGetNumKernelComputeUnits(): Get number of CUs in xclbin
+    :param handle: Xclbin handle obtained from an xrtXclbinAlloc function
+    :return: The number of compute units Compute units are associated with kernels. This function returns the total number of compute units as the sum of compute units over all kernels.
+    """
+    libcoreutil.xrtXclbinGetNumKernelComputeUnits.restype = ctypes.c_int
+    libcoreutil.xrtXclbinGetNumKernelComputeUnits.argTypes = xrtXclbinHandle
+    return _valueOrError(libcoreutil.xrtXclbinGetNumKernelComputeUnits(handle))
+
+def xrtXclbinGetNumKernels(handle):
+    """
+    xrtXclbinGetNumKernels(): Get number of PL kernels in xclbin
+    :param handle: Xclbin handle obtained from an xrtXclbinAlloc function
+    :return: The number of PL kernels in the xclbin
+    """
+    libcoreutil.xrtXclbinGetNumKernels.restype = ctypes.c_int
+    libcoreutil.xrtXclbinGetNumKernels.argTypes = xrtXclbinHandle
+    return _valueOrError(libcoreutil.xrtXclbinGetNumKernels(handle))
 
 def xrtPLKernelOpen(handle, xclbinId, name):
     """

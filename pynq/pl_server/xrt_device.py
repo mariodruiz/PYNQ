@@ -339,9 +339,10 @@ class XrtDevice(Device):
         }
         if _xrt_version >= REQUIRED_VERSION_ERT:
             self.capabilities['ERT'] = True
-        self.handle = xrt.xrtDeviceOpen(index)
+        self._handle_xcl = xrt.xclOpen(index, None, 0)
+        self.handle = xrt.xrtDeviceOpenFromXcl(self._handle_xcl)
         self._info = xrt.xclDeviceInfo2()
-        xrt.xclGetDeviceInfo2(self.handle, self._info)
+        #xrt.xclGetDeviceInfo2(self.handle, self._info)
         self.contexts = dict()
         self._find_sysfs()
         self.active_bos = []
@@ -357,7 +358,6 @@ class XrtDevice(Device):
                 slot = int(f.read())
             if slot == self._info.mPciSlot:
                 self.sysfs_path = os.path.realpath(d)
-
 
     @property
     def device_info(self):
@@ -491,15 +491,35 @@ class XrtDevice(Device):
 
     def read_registers(self, address, length):
         data = (ctypes.c_char * length)()
-        ret = xrt.xclRead(self.handle,
-                          xrt.xclAddressSpace.XCL_ADDR_KERNEL_CTRL,
-                          address, data, length)
+        handle = None
+        for k, v in self.contexts.items():
+            phys_addr = v['phys_addr']
+            if address >= phys_addr and \
+                    address <= (phys_addr + v['addr_range']):
+                handle = v['handle']
+                offset = address - phys_addr
+
+        if handle == None:
+            raise RuntimeError("address: {} cannot be found in the context"
+                .format(address))
+        ret = xrt.xrtKernelReadRegister(handle, offset, data)
+
         return bytes(data)
 
     def write_registers(self, address, data):
-        cdata = (ctypes.c_char * len(data)).from_buffer_copy(data)
-        xrt.xclWrite(self.handle, xrt.xclAddressSpace.XCL_ADDR_KERNEL_CTRL,
-                     address, cdata, len(data))
+        for k, v in self.contexts.items():
+            phys_addr = v['phys_addr']
+            if address >= phys_addr and \
+                    address <= (phys_addr + v['addr_range']):
+                handle = v['handle']
+                offset = address - phys_addr
+
+        if handle == None:
+            raise RuntimeError("address: {} cannot be found in the context"
+                .format(address))
+        for i in range(0, len(data), 4):
+            wdata = int.from_bytes(data[i: i +4], "little")
+            ret = xrt.xrtKernelWriteRegister(handle, offset, wdata)
 
     def free_bitstream(self):
         for k, v in self.contexts.items():
@@ -528,31 +548,38 @@ class XrtDevice(Device):
         with open(bitstream.bitfile_name, 'rb') as f:
             data = f.read()
         self._xrt_download(data)
+        self.xclbin_name = bitstream.bitfile_name
         super().post_download(bitstream, parser)
 
     def open_context(self, description, shared=True):
         """Open XRT context for the compute unit"""
-
         cu_name = description['cu_name']
         context = self.contexts.get(cu_name)
         if context:
             return context['idx']
-        if _xrt_version >= (2, 6, 0):
-            cu_index = xrt.xclIPName2Index(self.handle, cu_name)
-            description['cu_index'] = cu_index
-        else:
-            cu_index = description['cu_index']
+
+        cu_index = xrt.xclIPName2Index(self._handle_xcl, cu_name)
+        description['cu_index'] = cu_index
 
         uuid = bytes.fromhex(description['xclbin_uuid'])
         uuid_ctypes = XrtUUID((ctypes.c_char * 16).from_buffer_copy(uuid))
-        err = xrt.xclOpenContext(self.handle, uuid_ctypes, cu_index, shared)
 
-        if err:
+        xclbin_handle = \
+            xrt.xrtXclbinAllocFilename(self.xclbin_name.encode('utf-8'))
+        #tot_cus = xrt.xrtXclbinGetNumKernelComputeUnits(xclbin_handle)
+        #tot_kernels = xrt.xrtXclbinGetNumKernels(xclbin_handle)
+        krnl_name = cu_name.replace(':',':{') + '}'
+        krnl_handle = xrt.xrtPLKernelOpenExclusive(
+            self.handle, uuid_ctypes, krnl_name.encode('utf-8'))
+
+        if not krnl_handle:
             raise RuntimeError('Could not open CU context - {}, {}'\
-                .format(err, cu_index))
+                .format(krnl_handle, cu_index))
         # Setup the execution context for the compute unit
         self.contexts[cu_name] = {'cu' : cu_name, 'idx': cu_index,
-            'uuid_ctypes': uuid_ctypes, 'shared': shared}
+            'uuid_ctypes': uuid_ctypes, 'shared': shared,
+            'handle': krnl_handle, 'phys_addr': description['phys_addr'],
+            'addr_range': description['addr_range']}
 
         return cu_index
 
