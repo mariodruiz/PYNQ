@@ -610,7 +610,7 @@ def xrtXclbinAllocFilename(filename):
     :param filename: path to the xclbin file
     :return: xrtXclbinHandle on success or NULL with errno set
     """
-    libcoreutil.xrtXclbinAllocFilename.restype = xrtXclbinHandle
+    libcoreutil.xrtXclbinAllocFilename.restype = ctypes.POINTER(xrtXclbinHandle)
     libcoreutil.xrtXclbinAllocFilename.argTypes = ctypes.c_char_p
     return _valueOrError(libcoreutil.xrtXclbinAllocFilename(filename))
 
@@ -620,7 +620,7 @@ def xrtXclbinGetNumKernelComputeUnits(handle):
     :param handle: Xclbin handle obtained from an xrtXclbinAlloc function
     :return: The number of compute units Compute units are associated with kernels. This function returns the total number of compute units as the sum of compute units over all kernels.
     """
-    libcoreutil.xrtXclbinGetNumKernelComputeUnits.restype = ctypes.c_int
+    libcoreutil.xrtXclbinGetNumKernelComputeUnits.restype = ctypes.c_size_t
     libcoreutil.xrtXclbinGetNumKernelComputeUnits.argTypes = xrtXclbinHandle
     return _valueOrError(libcoreutil.xrtXclbinGetNumKernelComputeUnits(handle))
 
@@ -630,7 +630,7 @@ def xrtXclbinGetNumKernels(handle):
     :param handle: Xclbin handle obtained from an xrtXclbinAlloc function
     :return: The number of PL kernels in the xclbin
     """
-    libcoreutil.xrtXclbinGetNumKernels.restype = ctypes.c_int
+    libcoreutil.xrtXclbinGetNumKernels.restype = ctypes.c_size_t
     libcoreutil.xrtXclbinGetNumKernels.argTypes = xrtXclbinHandle
     return _valueOrError(libcoreutil.xrtXclbinGetNumKernels(handle))
 
