@@ -523,7 +523,7 @@ class XrtDevice(Device):
 
     def free_bitstream(self):
         for k, v in self.contexts.items():
-            xrt.xclCloseContext(self.handle, v['uuid_ctypes'], v['idx'])
+            xrt.xrtKernelClose(v['handle'])
         self.contexts = dict()
 
     def _xrt_download(self, data):
@@ -532,14 +532,15 @@ class XrtDevice(Device):
         old_contexts = copy.deepcopy(self.contexts)
         # Close existing contexts
         for k, v in self.contexts.items():
-            xrt.xclCloseContext(self.handle, v['uuid_ctypes'], v['idx'])
+            xrt.xrtKernelClose(v['handle'])
         self.contexts = dict()
 
         err = xrt.xrtDeviceLoadXclbin(self.handle, data)
         if err:
             for k, v in old_contexts:
-                xrt.xclOpenContext(self.handle, v['uuid_ctypes'],
-                    v['idx'], True)
+                krnl_handle = xrt.xrtPLKernelOpenExclusive(self.handle,
+                    v['uuid_ctypes'], v['krnl_name'])
+
             self.contexts = old_contexts
             raise RuntimeError("Programming Device failed: " +
                                _format_xrt_error(err))
@@ -551,7 +552,7 @@ class XrtDevice(Device):
         self.xclbin_name = bitstream.bitfile_name
         super().post_download(bitstream, parser)
 
-    def open_context(self, description, shared=True):
+    def open_context(self, description, shared=False):
         """Open XRT context for the compute unit"""
         cu_name = description['cu_name']
         context = self.contexts.get(cu_name)
@@ -569,16 +570,21 @@ class XrtDevice(Device):
         #tot_cus = xrt.xrtXclbinGetNumKernelComputeUnits(xclbin_handle)
         #tot_kernels = xrt.xrtXclbinGetNumKernels(xclbin_handle)
         krnl_name = cu_name.replace(':',':{') + '}'
-        krnl_handle = xrt.xrtPLKernelOpenExclusive(
-            self.handle, uuid_ctypes, krnl_name.encode('utf-8'))
+        krnl_handle = xrt.xrtPLKernelOpenExclusive(self.handle, uuid_ctypes,
+            krnl_name.encode('utf-8'))
 
         if not krnl_handle:
             raise RuntimeError('Could not open CU context - {}, {}'\
                 .format(krnl_handle, cu_index))
         # Setup the execution context for the compute unit
-        self.contexts[cu_name] = {'cu' : cu_name, 'idx': cu_index,
-            'uuid_ctypes': uuid_ctypes, 'shared': shared,
-            'handle': krnl_handle, 'phys_addr': description['phys_addr'],
+        self.contexts[cu_name] = {
+            'cu' : cu_name,
+            'idx': cu_index,
+            'krnl_name': krnl_name.encode('utf-8'),
+            'uuid_ctypes': uuid_ctypes,
+            'shared': shared,
+            'handle': krnl_handle,
+            'phys_addr': description['phys_addr'],
             'addr_range': description['addr_range']}
 
         return cu_index
@@ -589,7 +595,7 @@ class XrtDevice(Device):
         context = self.contexts.get(cu_name)
         if context is None:
             raise RuntimeError('CU context ({}) is not open.'.format(cu_name))
-        xrt.xclCloseContext(self.handle, context['uuid_ctypes'], context['idx'])
+        xrt.xrtKernelClose(context['handle'])
         self.contexts.pop(cu_name)
 
     def get_bitfile_metadata(self, bitfile_name):

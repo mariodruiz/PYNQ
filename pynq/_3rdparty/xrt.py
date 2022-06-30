@@ -299,38 +299,6 @@ def xrtDeviceLoadXclbin(handle, buf):
     libcoreutil.xrtDeviceLoadXclbin.argTypes = [xrtDeviceHandle, ctypes.c_void_p]
     return _valueOrError(libcoreutil.xrtDeviceLoadXclbin(handle, buf))
 
-def xclOpenContext(handle, xclbinId, ipIndex, shared):
-    """
-    xclOpenContext() - Create shared/exclusive context on compute units
-    :param handle: Device handle
-    :param xclbinId: UUID of the xclbin image running on the device
-    :param ipIndex: IP/CU index in the IP LAYOUT array
-    :param shared: Shared access or exclusive access
-    :return: 0 on success or appropriate error number
-
-    The context is necessary before submitting execution jobs using xclExecBuf(). Contexts may be
-    exclusive or shared. Allocation of exclusive contexts on a compute unit would succeed
-    only if another client has not already setup up a context on that compute unit. Shared
-    contexts can be concurrently allocated by many processes on the same compute units.
-    """
-    libc.xclOpenContext.restype = ctypes.c_int
-    libc.xclOpenContext.argtypes = [xclDeviceHandle, ctypes.c_char_p, ctypes.c_uint, ctypes.c_bool]
-    return libc.xclOpenContext(handle, xclbinId.bytes, ipIndex, shared)
-
-def xclCloseContext(handle, xclbinId, ipIndex):
-    """
-    xclCloseContext() - Close previously opened context
-    :param handle: Device handle
-    :param xclbinId: UUID of the xclbin image running on the device
-    :param ipIndex: IP/CU index in the IP LAYOUT array
-    :return: 0 on success or appropriate error number
-
-    Close a previously allocated shared/exclusive context for a compute unit.
-    """
-    libc.xclCloseContext.restype = ctypes.c_int
-    libc.xclCloseContext.argtypes = [xclDeviceHandle, ctypes.c_char_p, ctypes.c_uint]
-    return libc.xclCloseContext(handle, xclbinId.bytes, ipIndex)
-
 def xrtBOAlloc(handle, size, flags, grp):
     """
     Allocate a BO of requested size with appropriate flags.
