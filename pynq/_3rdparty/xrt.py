@@ -692,7 +692,7 @@ def xrtKernelReadRegister(khandle, offset, data):
     """
     libcoreutil.xrtKernelReadRegister.restype = ctypes.c_size_t
     libcoreutil.xrtKernelReadRegister.argtypes = [xrtKernelHandle, ctypes.c_uint32, ctypes.c_void_p]
-    return _valueOrError(libcoreutil.xrtKernelReadRegister(khandle, argno, data))
+    return _valueOrError(libcoreutil.xrtKernelReadRegister(khandle, offset, data))
 
 def xrtKernelWriteRegister(khandle, offset, data):
     """
@@ -706,7 +706,7 @@ def xrtKernelWriteRegister(khandle, offset, data):
     """
     libcoreutil.xrtKernelWriteRegister.restype = ctypes.c_size_t
     libcoreutil.xrtKernelWriteRegister.argtypes = [xrtKernelHandle, ctypes.c_uint32, ctypes.c_uint32]
-    return _valueOrError(libcoreutil.xrtKernelWriteRegister(khandle, argno, data))
+    return _valueOrError(libcoreutil.xrtKernelWriteRegister(khandle, offset, data))
 
 def xrtKernelGetFunc(*args):
     """
