@@ -549,7 +549,8 @@ class XrtDevice(Device):
         with open(bitstream.bitfile_name, 'rb') as f:
             data = f.read()
         self._xrt_download(data)
-        self.xclbin_name = bitstream.bitfile_name
+        self.xclbin_handle = \
+            xrt.xrtXclbinAllocFilename(bitstream.bitfile_name.encode('utf-8'))
         super().post_download(bitstream, parser)
 
     def open_context(self, description, shared=False):
@@ -564,11 +565,6 @@ class XrtDevice(Device):
 
         uuid = bytes.fromhex(description['xclbin_uuid'])
         uuid_ctypes = XrtUUID((ctypes.c_char * 16).from_buffer_copy(uuid))
-
-        xclbin_handle = \
-            xrt.xrtXclbinAllocFilename(self.xclbin_name.encode('utf-8'))
-        #tot_cus = xrt.xrtXclbinGetNumKernelComputeUnits(xclbin_handle)
-        #tot_kernels = xrt.xrtXclbinGetNumKernels(xclbin_handle)
         krnl_name = cu_name.replace(':',':{') + '}'
         krnl_handle = xrt.xrtPLKernelOpenExclusive(self.handle, uuid_ctypes,
             krnl_name.encode('utf-8'))
