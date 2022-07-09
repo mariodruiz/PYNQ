@@ -33,10 +33,7 @@ __email__ = "pynq_support@xilinx.com"
 
 from setuptools import setup, Extension, find_packages, Distribution
 from setuptools.command.build_ext import build_ext
-from distutils.dir_util import copy_tree
-from distutils.file_util import copy_file, move_file
-from shutil import rmtree
-import shutil
+from shutil import copy, copytree, ignore_patterns, move, rmtree
 import glob
 import re
 import subprocess
@@ -190,9 +187,9 @@ def copy_common_notebooks(staging_notebooks_dir):
             src_folder_file = os.path.join('pynq/notebooks/', basename)
 
             if os.path.isdir(src_folder_file):
-                copy_tree(src_folder_file, dst_folder_file)
+                copytree(src_folder_file, dst_folder_file)
             elif os.path.isfile(src_folder_file):
-                copy_file(src_folder_file, dst_folder_file)
+                copy(src_folder_file, dst_folder_file)
     if os.path.exists(os.path.join('pynq/notebooks/arch', CPU_ARCH)):
         dir_fd = os.open(os.path.join('pynq/notebooks/arch', CPU_ARCH),
                          os.O_RDONLY)
@@ -201,7 +198,7 @@ def copy_common_notebooks(staging_notebooks_dir):
             if not os.path.exists(os.path.join(staging_notebooks_dir, dir)):
                 os.mkdir(os.path.join(staging_notebooks_dir, dir))
             for f in files:
-                copy_file(os.path.join('pynq/notebooks/arch', CPU_ARCH, dir, f),
+                copy(os.path.join('pynq/notebooks/arch', CPU_ARCH, dir, f),
                          os.path.join(staging_notebooks_dir, dir, f))
         os.close(dir_fd)
 
@@ -212,7 +209,7 @@ def copy_board_notebooks(staging_notebooks_dir, board):
     src_folder = os.path.join(board_folder, 'notebooks')
     dst_folder = staging_notebooks_dir
     if os.path.isdir(src_folder):
-        copy_tree(src_folder, dst_folder)
+        copytree(src_folder, dst_folder)
 
 
 # Copy notebooks in boards/BOARD/OVERLAY/notebooks
@@ -225,7 +222,7 @@ def copy_overlay_notebooks(staging_notebooks_dir, board):
         src_folder = os.path.join(board_folder, overlay, 'notebooks')
         dst_folder = os.path.join(staging_notebooks_dir, overlay)
         if os.path.isdir(src_folder):
-            copy_tree(src_folder, dst_folder)
+            copytree(src_folder, dst_folder)
 
 
 # Copy documentation files in docs/source and docs/source/images
@@ -252,7 +249,7 @@ def copy_documentation_files(staging_notebooks_dir):
         os.makedirs(notebooks_getting_started_dst_img_dir)
     for dst, files in doc_files:
         for f in files:
-            copy_file(f, dst)
+            copy(f, dst)
             if os.path.splitext(f)[1] == '.ipynb':
                 dest_nb = os.path.join(dst, os.path.split(f)[1])
                 # rewrite image paths in notebooks
@@ -276,7 +273,7 @@ def rename_notebooks(staging_notebooks_dir):
                                 new_nb_name)
         if os.path.exists(dst_file):
             os.remove(dst_file)
-        move_file(src_file, dst_file)
+        move(src_file, dst_file)
 
 
 # Get environment variables
@@ -307,7 +304,7 @@ def backup_notebooks(notebooks_dir):
     if os.path.isdir(notebooks_dir):
         notebooks_dir_backup = '{}_{}'.format(
             notebooks_dir, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
-        copy_tree(notebooks_dir, notebooks_dir_backup)
+        copytree(notebooks_dir, notebooks_dir_backup)
     else:
         os.makedirs(notebooks_dir, exist_ok=True)
 
@@ -337,7 +334,7 @@ class BuildExtension(build_ext):
         self.spawn(['make', 'PYNQ_BUILD_ARCH={}'.format(CPU_ARCH),
                     '-C', src_path])
         os.makedirs(os.path.join(self.build_lib, dst_path), exist_ok=True)
-        copy_file(src_path + output_lib,
+        copy(src_path + output_lib,
                   os.path.join(self.build_lib, dst_path, output_lib))
 
     def install_overlays(self):
@@ -349,7 +346,7 @@ class BuildExtension(build_ext):
                 src = os.path.join(board_folder, ol)
                 dst = os.path.join(self.build_lib, "pynq/overlays", ol)
                 if not os.path.isdir(dst):
-                    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('notebooks'))
+                    copytree(src, dst, ignore=ignore_patterns('notebooks'))
 
     def run(self):
         if CPU_ARCH == ZYNQ_ARCH:
