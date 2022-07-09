@@ -404,7 +404,7 @@ def deliver_notebooks(device_name, src_path, dst_path, name, folder=False,
         1. If an ``overlay_res.ext`` file is found, prioritize that file and do
            not perform any resolution.
         2. In case step 1 fails, if a ``overlay_res.ext.d`` folder is found,
-           try to retrieve the right ``overlau_res.ext`` file from there. The
+           try to retrieve the right ``overlay_res.ext`` file from there. The
            files in this folder are expected to contain the device name as a
            string, before the file extension ``.ext``.
            Format should be ``overlay_res.device_name.ext``.
