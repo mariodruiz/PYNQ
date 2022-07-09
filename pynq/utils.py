@@ -34,8 +34,6 @@ import tempfile
 import logging
 import pkg_resources
 import atexit
-from distutils.dir_util import copy_tree, remove_tree, mkpath
-from distutils.file_util import copy_file
 from distutils.command.build import build as dist_build
 from setuptools.command.build_py import build_py as _build_py
 
@@ -363,10 +361,10 @@ def _copy_and_move_files(files_to_copy, files_to_move):
     # copy files and folders
     for src, dst in files_to_copy.items():
         if os.path.isfile(src):
-            mkpath(os.path.dirname(dst))
-            copy_file(src, dst)
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy(src, dst)
         else:
-            copy_tree(src, dst)
+            shutil.copytree(src, dst)
     # and move files previously downloaded
     for src, dst in files_to_move.items():
         shutil.move(src, dst)
@@ -384,7 +382,7 @@ def _roll_back_copy(files_to_copy, files_to_move):
                 os.rmdir(os.path.dirname(dst))
                 dst = os.path.dirname(dst)
         elif os.path.isdir(dst):
-            remove_tree(dst)
+            shutil.rmtree(dst)
     for _, dst in files_to_move.items():
         if os.path.isfile(dst):
             os.remove(dst)
@@ -567,7 +565,7 @@ def _resolve_devices_overlay_res_helper(device, src_path, overlay_res_filename,
             device, os.path.join(src_path, overlay_res_link))
         if overlay_res_download_dict:
             if overlay_res_download_path:
-                mkpath(overlay_res_download_path)
+                os.makedirs(overlay_res_download_path, exist_ok=True)
             try:
                 logger.info("Downloading file '{}'. This may take a while"
                             "...".format(overlay_res_filename))
@@ -646,7 +644,7 @@ def _resolve_all_overlay_res_from_link(overlay_res_link, src_path, logger,
                 overlay_res_filename_ext = "{}.{}{}".format(
                     overlay_res_filename_split[0], device,
                     overlay_res_filename_split[1])
-                mkpath(overlay_res_download_path)
+                os.makedirs(overlay_res_download_path, exist_ok=True)
                 overlay_res_fullpath = os.path.join(
                     overlay_res_download_path,
                     overlay_res_filename_ext)
