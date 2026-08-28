@@ -111,19 +111,13 @@ _CFG_RAW10 = (
 
 
 def _centred_crop(out_width, out_height, binning):
-    """Derive a centred readout window for an output size.
-
-    Binned modes read the whole array and let the binning do the
-    downscale, matching mode_1640_1232_regs in imx219.c; cropping *and*
-    binning is not a combination the kernel driver ever programs.
-    Unbinned modes take a centred window, as mode_1920_1080_regs does.
-    Offsets are forced even to keep the Bayer phase (RGGB) unchanged.
-    """
-    if binning:
-        return 0, 0, _ARRAY_WIDTH, _ARRAY_HEIGHT
-    left = ((_ARRAY_WIDTH - out_width) // 2) & ~1
-    top = ((_ARRAY_HEIGHT - out_height) // 2) & ~1
-    return left, top, out_width, out_height
+    """Derive a centred readout window while preserving Bayer phase."""
+    scale = 2 if binning else 1
+    crop_w = out_width * scale
+    crop_h = out_height * scale
+    left = ((_ARRAY_WIDTH - crop_w) // 2) & ~1
+    top = ((_ARRAY_HEIGHT - crop_h) // 2) & ~1
+    return left, top, crop_w, crop_h
 
 
 class _Mode:
@@ -294,4 +288,3 @@ class IMX219(SonySensor):
     def digital_gain(self, value):
         self.write_reg16(_REG_DIGITAL_GAIN,
                          max(_DGTL_GAIN_MIN, min(value, _DGTL_GAIN_MAX)))
-

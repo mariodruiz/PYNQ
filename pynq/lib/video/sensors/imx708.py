@@ -389,4 +389,3 @@ class IMX708(SonySensor):
     def digital_gain(self, value):
         self.write_reg16(_REG_DIGITAL_GAIN,
                          max(_DGTL_GAIN_MIN, min(value, _DGTL_GAIN_MAX)))
-
