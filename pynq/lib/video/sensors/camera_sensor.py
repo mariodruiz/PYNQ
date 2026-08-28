@@ -108,13 +108,26 @@ class CameraSensor(metaclass=abc.ABCMeta):
     def write_reg(self, addr, data):
         """Write a single byte to a 16-bit register address."""
         buf = bytes([addr >> 8, addr & 0xFF, data])
-        os.write(self._fd, buf)
+        for attempt in range(3):
+            try:
+                os.write(self._fd, buf)
+                return
+            except OSError:
+                if attempt == 2:
+                    raise
+                time.sleep(0.001)
 
     def read_reg(self, addr):
         """Read a single byte from a 16-bit register address."""
         buf = bytes([addr >> 8, addr & 0xFF])
-        os.write(self._fd, buf)
-        return os.read(self._fd, 1)[0]
+        for attempt in range(3):
+            try:
+                os.write(self._fd, buf)
+                return os.read(self._fd, 1)[0]
+            except OSError:
+                if attempt == 2:
+                    raise
+                time.sleep(0.001)
 
     def write_reg16(self, addr, data):
         """Write a big-endian 16-bit value to ``addr`` and ``addr + 1``.
