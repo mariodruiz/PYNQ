@@ -46,7 +46,8 @@ class MIPICamera(DefaultHierarchy):
     @staticmethod
     def checkhierarchy(description):
         return (
-            "gpio_ip_reset" in description["ip"]
+            "axi_vdma" in description["ip"]
+            and "gpio_ip_reset" in description["ip"]
             and "mipi_csi2_rx_subsyst" in description["ip"]
             and "demosaic" in description["ip"]
             and "gamma_lut" in description["ip"]
@@ -318,6 +319,9 @@ class MIPICamera(DefaultHierarchy):
             means the scene is too dark to balance.
         """
         black = self._require_sensor().BLACK_LEVEL
+        if self.mode.bits_per_pixel != 24:
+            raise RuntimeError(
+                "auto_white_balance requires 24-bit (RGB) pixel format")
         saved = self._wb_gains
         self.gamma_lut._set_curve(0, (1.0, 1.0, 1.0), 1.0)
         try:
