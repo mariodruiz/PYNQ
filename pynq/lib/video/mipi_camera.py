@@ -215,6 +215,7 @@ class MIPICamera(DefaultHierarchy):
         """Uninitialise the drivers, stopping the pipeline beforehand"""
         self.stop()
         if self._sensor is not None:
+            self._sensor.stop()
             self._sensor.close()
             self._sensor = None
 
@@ -318,6 +319,10 @@ class MIPICamera(DefaultHierarchy):
             If a channel carries no signal above the black level, which
             means the scene is too dark to balance.
         """
+        if not self._vdma.readchannel.running:
+            raise RuntimeError(
+                "Pipeline not started; call start() before "
+                "auto_white_balance()")
         black = self._require_sensor().BLACK_LEVEL
         if self.mode.bits_per_pixel != 24:
             raise RuntimeError(
@@ -398,8 +403,8 @@ class MIPICamera(DefaultHierarchy):
             "packet_count": int(status.packet_count),
             "stream_line_buffer_full": bool(status.stream_full),
             "short_packet_fifo_not_empty":
-                bool(status.shot_packet_fifo_not_empty),
-            "short_packet_fifo_full": bool(status.shot_packet_fifo_full),
+                bool(status.short_packet_fifo_not_empty),
+            "short_packet_fifo_full": bool(status.short_packet_fifo_full),
             "active_lanes": int(proto.active_lanes) + 1,
             "maximum_lanes": int(proto.maximum_lanes) + 1,
             "dphy_enabled": bool(csi.dphy_control.dphy_en),

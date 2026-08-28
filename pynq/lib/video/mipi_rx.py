@@ -72,13 +72,13 @@ _registers = {
                 "bit_width": 1,
                 "description": "Stream Line buffer Full: indicates the current status of line buffer full condition",
             },
-            "shot_packet_fifo_not_empty": {
+            "short_packet_fifo_not_empty": {
                 "access": "read-only",
                 "bit_offset": 2,
                 "bit_width": 1,
                 "description": "Short packet FIFO not empty: Indicates the current status of short packet FIFO not empty condition",
             },
-            "shot_packet_fifo_full": {
+            "short_packet_fifo_full": {
                 "access": "read-only",
                 "bit_offset": 3,
                 "bit_width": 1,
@@ -206,7 +206,7 @@ _registers = {
                 "bit_width": 1,
                 "description": "Active-High signal indicates that the lane module is currently in Stop state",
             },
-            "stream line buffer full ": {
+            "stream line buffer full": {
                 "access": "read-write",
                 "bit_offset": 18,
                 "bit_width": 1,
@@ -360,7 +360,7 @@ _registers = {
                 "bit_width": 1,
                 "description": "Set bits in this register to 1 to generate the required interrupts",
             },
-            "stream line buffer full ": {
+            "stream line buffer full": {
                 "access": "read-write",
                 "bit_offset": 18,
                 "bit_width": 1,
@@ -1321,16 +1321,16 @@ class MipiRx(DefaultIP):
         """
         rmap = self.register_map
         # --- CSI-2 RX controller ---
-        rmap.core_configuration.soft_reset = 1
+        rmap.core_configuration = 0x02
         deadline = time.monotonic() + timeout
         while rmap.core_status.soft_reset:
             if time.monotonic() > deadline:
                 raise TimeoutError(
                     "MIPI CSI-2 RX soft reset did not complete within "
                     f"{timeout}s")
-        rmap.core_configuration.soft_reset = 0
+        rmap.core_configuration = 0x00
         rmap.protocol_configuration.active_lanes = active_lanes - 1
-        rmap.core_configuration.core_enabled = 1
+        rmap.core_configuration = 0x01
 
         # --- D-PHY ---
         if hs_settle_ns is not None:
@@ -1339,6 +1339,6 @@ class MipiRx(DefaultIP):
                            rmap.dphy_hs_settle2, rmap.dphy_hs_settle3)
             for reg in settle_regs[:active_lanes]:
                 reg.hs_settle_ns = cycles
-        rmap.dphy_control.srst = 1
-        rmap.dphy_control.srst = 0
-        rmap.dphy_control.dphy_en = 1
+        rmap.dphy_control = 0x01
+        rmap.dphy_control = 0x00
+        rmap.dphy_control = 0x02
