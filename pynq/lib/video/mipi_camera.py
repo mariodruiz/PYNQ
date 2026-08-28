@@ -25,7 +25,7 @@ class MIPIMode(Enum):
     r1920x1080_15 = (1920, 1080, 15)
 
 
-class MipiCamera(DefaultHierarchy):
+class MIPICamera(DefaultHierarchy):
     """Driver for a MIPI CSI-2 camera on the base overlay.
 
     Supports every sensor in :data:`pynq.lib.video.sensors.SENSORS`. The
@@ -229,21 +229,12 @@ class MipiCamera(DefaultHierarchy):
 
     @property
     def cacheable_frames(self):
-        """Whether frames should be cacheable or non-cacheable
-
-        Only valid if a VDMA has been specified
-        """
-        if self._vdma:
-            return self._vdma.readchannel.cacheable_frames
-        else:
-            raise RuntimeError("No VDMA specified")
+        """Whether frames should be cacheable or non-cacheable"""
+        return self._vdma.readchannel.cacheable_frames
 
     @cacheable_frames.setter
     def cacheable_frames(self, value):
-        if self._vdma:
-            self._vdma.readchannel.cacheable_frames = value
-        else:
-            raise RuntimeError("No VDMA specified")
+        self._vdma.readchannel.cacheable_frames = value
 
     @property
     def bayer_phase(self):
@@ -334,9 +325,6 @@ class MipiCamera(DefaultHierarchy):
                 self.readframe()
             total = np.zeros(3)
             for _ in range(frames):
-                # A view of a PynqBuffer inherits its pointer and frees
-                # it again when collected, so freebuffer() here would
-                # double free. The frame cache recycles them anyway.
                 frame = self.readframe()
                 total += np.asarray(frame).reshape(-1, 3).mean(
                     axis=0, dtype=np.float64)
@@ -389,20 +377,6 @@ class MipiCamera(DefaultHierarchy):
 
     def diagnostics(self):
         """Return CSI-2 RX + D-PHY status to help triage a stalled capture.
-
-        Reads the CSI-2 RX controller status and the D-PHY clock/data-lane
-        status registers. Rough narrowing:
-
-        - all lanes in stop state, packet_count 0 => no HS burst reaching
-          the D-PHY (sensor silent, gated clock, or wrong HS_SETTLE).
-        - dphy_cl_init_done 0 => D-PHY never initialized (clock/reset/PLL).
-        - dphy_dl0_pkt_count > 0 but packet_count 0 => data dropped before
-          the line buffer (lane map or filtered data type).
-        - packet_count > 0 but readframe hangs => downstream (VDMA/format).
-        - one lane counting, the other stuck at 0 => physical-layer fault.
-          Both lanes come from one sensor register, so no configuration
-          produces this; reseat the cable and try a known-good module. A
-          lane that never recovers is usually damage from hot-swapping.
 
         Returns
         -------

@@ -5,6 +5,7 @@ import abc
 import glob
 import os
 import time
+import warnings
 import fcntl
 
 _I2C_SLAVE = 0x0703
@@ -244,6 +245,8 @@ class CameraSensor(metaclass=abc.ABCMeta):
                         return int(adapter_number)
             except FileNotFoundError:
                 continue
+        warnings.warn("RPICAM I2C label not found, falling back to bus 6",
+                      stacklevel=2)
         return 6
 
     @abc.abstractmethod

@@ -468,145 +468,145 @@ _registers = {
         "description": "The VCX Frame Error register",
         "type": "uint",
         "fields": {
-            "Fame level error for VC4": {
+            "Frame level error for VC4": {
                 "access": "read-write",
                 "bit_offset": 0,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC4": {
+            "Frame synchronization error for VC4": {
                 "access": "read-write",
                 "bit_offset": 1,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC5": {
+            "Frame level error for VC5": {
                 "access": "read-write",
                 "bit_offset": 2,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC5": {
+            "Frame synchronization error for VC5": {
                 "access": "read-write",
                 "bit_offset": 3,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC6": {
+            "Frame level error for VC6": {
                 "access": "read-write",
                 "bit_offset": 4,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC6": {
+            "Frame synchronization error for VC6": {
                 "access": "read-write",
                 "bit_offset": 5,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC7": {
+            "Frame level error for VC7": {
                 "access": "read-write",
                 "bit_offset": 6,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC7": {
+            "Frame synchronization error for VC7": {
                 "access": "read-write",
                 "bit_offset": 7,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC8": {
+            "Frame level error for VC8": {
                 "access": "read-write",
                 "bit_offset": 8,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC8": {
+            "Frame synchronization error for VC8": {
                 "access": "read-write",
                 "bit_offset": 9,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC9": {
+            "Frame level error for VC9": {
                 "access": "read-write",
                 "bit_offset": 10,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC9": {
+            "Frame synchronization error for VC9": {
                 "access": "read-write",
                 "bit_offset": 11,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC10": {
+            "Frame level error for VC10": {
                 "access": "read-write",
                 "bit_offset": 12,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC10": {
+            "Frame synchronization error for VC10": {
                 "access": "read-write",
                 "bit_offset": 13,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC11": {
+            "Frame level error for VC11": {
                 "access": "read-write",
                 "bit_offset": 14,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC11": {
+            "Frame synchronization error for VC11": {
                 "access": "read-write",
                 "bit_offset": 15,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC12": {
+            "Frame level error for VC12": {
                 "access": "read-write",
                 "bit_offset": 16,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC12": {
+            "Frame synchronization error for VC12": {
                 "access": "read-write",
                 "bit_offset": 17,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC13": {
+            "Frame level error for VC13": {
                 "access": "read-write",
                 "bit_offset": 18,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC13": {
+            "Frame synchronization error for VC13": {
                 "access": "read-write",
                 "bit_offset": 19,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC14": {
+            "Frame level error for VC14": {
                 "access": "read-write",
                 "bit_offset": 20,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC14": {
+            "Frame synchronization error for VC14": {
                 "access": "read-write",
                 "bit_offset": 21,
                 "bit_width": 1,
                 "description": "Asserted when an FE is not paired with a Frame Start (FS) on the same virtual channel",
             },
-            "Fame level error for VC15": {
+            "Frame level error for VC15": {
                 "access": "read-write",
                 "bit_offset": 22,
                 "bit_width": 1,
                 "description": "Asserted after an FE when the data payload received between FS and FE contains errors",
             },
-            "Fame synchronization error for VC15": {
+            "Frame synchronization error for VC15": {
                 "access": "read-write",
                 "bit_offset": 23,
                 "bit_width": 1,
@@ -660,7 +660,7 @@ _registers = {
                 "access": "read-only",
                 "bit_offset": 5,
                 "bit_width": 1,
-                "description": "etection of stop state",
+                "description": "Detection of stop state",
             },
         },
     },
@@ -694,7 +694,7 @@ _registers = {
                 "access": "read-only",
                 "bit_offset": 5,
                 "bit_width": 1,
-                "description": "etection of stop state",
+                "description": "Detection of stop state",
             },
         },
     },
@@ -728,7 +728,7 @@ _registers = {
                 "access": "read-only",
                 "bit_offset": 5,
                 "bit_width": 1,
-                "description": "etection of stop state",
+                "description": "Detection of stop state",
             },
         },
     },
@@ -762,7 +762,7 @@ _registers = {
                 "access": "read-only",
                 "bit_offset": 5,
                 "bit_width": 1,
-                "description": "etection of stop state",
+                "description": "Detection of stop state",
             },
         },
     },

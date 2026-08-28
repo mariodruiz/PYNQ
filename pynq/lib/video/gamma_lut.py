@@ -112,7 +112,7 @@ class GammaLut(DefaultIP):
             y = np.clip((x - black_level) * gain / span, 0.0, 1.0)
             if gamma != 1.0:
                 y = y ** (1.0 / gamma)
-            self._channel_view(channel)[:] = np.round(y * 255)
+            self._channel_view(channel)[:] = np.round(y * 255).astype(np.uint16)
 
     def _channel_view(self, channel):
         """A writable uint16 view of one channel's 256-entry table."""
