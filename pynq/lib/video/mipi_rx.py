@@ -416,7 +416,7 @@ _registers = {
             },
         },
     },
-    "vs_selection": {
+    "vc_selection": {
         "address_offset": 0x2C,
         "access": "read-write;",
         "size": 32,

@@ -185,7 +185,10 @@ class MIPICamera(DefaultHierarchy):
         """
         width, height, fps = mode.value
         return self.configure(
-            VideoMode(width, height, bits_per_pixel, fps=fps))
+            VideoMode(width, height, bits_per_pixel, fps=fps),
+            bayer_phase=self._bayer_phase,
+            wb_gains=self._wb_gains,
+            gamma=self._gamma)
 
     def start(self):
         """Start the pipeline"""
@@ -248,7 +251,7 @@ class MIPICamera(DefaultHierarchy):
 
     @bayer_phase.setter
     def bayer_phase(self, value):
-        self._bayer_phase = value
+        self._bayer_phase = value & 0x3
         self.demosaic.register_map.bayer_phase = value & 0x3
 
     @property

@@ -113,7 +113,7 @@ class VideoMode:
         Width of a line in the video frame in bytes
     bits_per_pixel : int
         Bits per pixel
-    bytes_per_Pixel : int
+    bytes_per_pixel : int
         Bytes required to represent each pixel
     shape : tuple of int
         Numpy-style tuple describing the video frame

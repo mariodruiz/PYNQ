@@ -314,5 +314,5 @@ class CameraSensor(metaclass=abc.ABCMeta):
             GPIO IP for camera power control
         """
         self.stop()
-        self.configure(mode, gpio_ip)
+        self.configure(mode, gpio_ip, power_cycle=False)
         self.start()
