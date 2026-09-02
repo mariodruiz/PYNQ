@@ -13,8 +13,8 @@ exactly as validated and the sensor's digital crop (``DIG_CROP_*``) takes a
 centred 1280x720 or 1920x1080 window out of it, so the field of view is a
 little narrower than the full binned mode.
 
-The module is fixed-focus: the DW9817 VCM sits at its own I2C address
-(0x0C) and is left at its power-on position.
+Autofocus is unsupported: the DW9817 VCM sits at its own I2C address
+(0x0C) and remains at its power-on position.
 """
 
 from .sony_sensor import SonySensor
@@ -262,8 +262,8 @@ _MODE_CONFIGS = {
 class IMX708(SonySensor):
     """Sony IMX708 sensor driver (Raspberry Pi Camera Module v3).
 
-    Fixed-focus: the voice-coil lens actuator is a separate I2C device and
-    is not driven, so the lens stays wherever it powers up.
+    Autofocus is unsupported: the voice-coil lens actuator is a separate
+    I2C device and remains at its power-on position.
 
     There is no auto-exposure loop: exposure and gain are set to fixed
     defaults sized for the selected mode and can be adjusted afterwards
@@ -281,8 +281,6 @@ class IMX708(SonySensor):
     I2C_ADDR = 0x1A
     ID_REG = 0x0016
     ID_VALUE = 0x0708
-    # 450 MHz link => 900 Mbps/lane DDR, under the 912 Mbps build.
-    HS_SETTLE_NS = 124
     # codes[0] (no flip) in imx708.c is SRGGB10.
     BAYER_PHASE = 0x0
     # Measured on this part under one indoor illuminant, no grey card:

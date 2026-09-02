@@ -33,12 +33,6 @@ class CameraSensor(metaclass=abc.ABCMeta):
         Address of the first byte of the chip ID.
     ID_VALUE : int
         Expected chip ID, big-endian across ``ID_NBYTES`` registers.
-    HS_SETTLE_NS : int
-        D-PHY HS_SETTLE time for this sensor's line rate. Recorded for
-        reference only -- it is **not** written at runtime. The
-        build-time ``C_HS_SETTLE_NS`` already falls inside the spec
-        window for every supported sensor, and overriding it stalled the
-        link (see the warning on ``MipiCsi2RxSubsystem.configure``).
     BAYER_PHASE : int
         Default demosaic Bayer phase (0=RGGB, 1=GRBG, 2=GBRG, 3=BGGR).
     WB_GAINS : tuple of float
@@ -75,7 +69,6 @@ class CameraSensor(metaclass=abc.ABCMeta):
     #: CSI-2 RX subsystem is built with ``C_CSI_EN_ACTIVELANES = false``,
     #: so the lane count is fixed in hardware and cannot be changed here.
     LANE_COUNT = 2
-    HS_SETTLE_NS = None
     BAYER_PHASE = 0x0
     #: Unity by default: only raw sensors without on-chip AWB need this.
     WB_GAINS = (1.0, 1.0, 1.0)

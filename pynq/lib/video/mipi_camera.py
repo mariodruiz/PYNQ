@@ -25,14 +25,24 @@ class MIPIMode(Enum):
     r1920x1080_15 = (1920, 1080, 15)
 
 
+def _validate_awb_counts(frames, discard):
+    if not isinstance(frames, int):
+        raise TypeError("frames must be an integer")
+    if frames <= 0:
+        raise ValueError("frames must be greater than zero")
+    if not isinstance(discard, int):
+        raise TypeError("discard must be an integer")
+    if discard < 0:
+        raise ValueError("discard must be non-negative")
+
+
 class MIPICamera(DefaultHierarchy):
     """Driver for a MIPI CSI-2 camera on the base overlay.
 
     Supports every sensor in :data:`pynq.lib.video.sensors.SENSORS`. The
     attached camera is identified over I2C the first time
     :meth:`configure` is called, and its driver then programs the sensor
-    while its metadata programs the rest of the pipeline (D-PHY HS_SETTLE,
-    demosaic Bayer phase).
+    while its metadata supplies the demosaic Bayer phase.
 
     Construction performs no hardware access, so loading the overlay
     always succeeds whether or not a camera is attached.
@@ -124,18 +134,15 @@ class MIPICamera(DefaultHierarchy):
 
         if wb_gains is None:
             wb_gains = self._sensor.WB_GAINS
-        self._wb_gains = tuple(wb_gains)
+        wb_gains = tuple(wb_gains)
 
         if gamma is None:
             gamma = self._sensor.GAMMA
-        self._gamma = gamma
 
         self._sensor.configure(mode_id, self.gpio_ip_reset,
                                power_cycle=False)
 
-        # HS_SETTLE is deliberately not written: the build-time 124 ns is
-        # in spec for every supported sensor, and overriding it stalls the
-        # link. See MipiCsi2RxSubsystem.configure.
+        # Use the D-PHY's build-time HS_SETTLE setting for every sensor.
         self.mipi_csi2_rx_subsyst.configure(
             active_lanes=self._sensor.LANE_COUNT)
 
@@ -145,13 +152,15 @@ class MIPICamera(DefaultHierarchy):
         # before the gains, and the CSC's offsets act after its matrix.
         self.gamma_lut.configure(videomode.width, videomode.height,
                                  black_level=self._sensor.BLACK_LEVEL,
-                                 gains=self._wb_gains, gamma=self._gamma)
+                                 gains=wb_gains, gamma=gamma)
         self.v_proc_sys.configure(videomode.width, videomode.height)
 
         self.pixel_pack.bits_per_pixel = videomode.bits_per_pixel
         self._vdma.readchannel.mode = videomode
 
         self._sensor.start()
+        self._wb_gains = wb_gains
+        self._gamma = gamma
         return self._closecontextmanager()
 
     def _open_sensor(self, sensor=None):
@@ -218,9 +227,11 @@ class MIPICamera(DefaultHierarchy):
         """Uninitialise the drivers, stopping the pipeline beforehand"""
         self.stop()
         if self._sensor is not None:
-            self._sensor.stop()
-            self._sensor.close()
-            self._sensor = None
+            try:
+                self._sensor.stop()
+            finally:
+                self._sensor.close()
+                self._sensor = None
 
     @property
     def sensor(self):
@@ -267,8 +278,10 @@ class MIPICamera(DefaultHierarchy):
 
     @wb_gains.setter
     def wb_gains(self, value):
-        self._wb_gains = tuple(value)
-        self._rebuild_curve()
+        value = tuple(value)
+        self.gamma_lut._set_curve(
+            self._require_sensor().BLACK_LEVEL, value, self._gamma)
+        self._wb_gains = value
 
     @property
     def gamma(self):
@@ -281,8 +294,9 @@ class MIPICamera(DefaultHierarchy):
 
     @gamma.setter
     def gamma(self, value):
+        self.gamma_lut._set_curve(
+            self._require_sensor().BLACK_LEVEL, self._wb_gains, value)
         self._gamma = value
-        self._rebuild_curve()
 
     def _rebuild_curve(self):
         """Reload the gamma LUT from the current pedestal, gains and gamma."""
@@ -322,6 +336,7 @@ class MIPICamera(DefaultHierarchy):
             If a channel carries no signal above the black level, which
             means the scene is too dark to balance.
         """
+        _validate_awb_counts(frames, discard)
         if not self._vdma.readchannel.running:
             raise RuntimeError(
                 "Pipeline not started; call start() before "
@@ -340,23 +355,20 @@ class MIPICamera(DefaultHierarchy):
                 frame = self.readframe()
                 total += np.asarray(frame).reshape(-1, 3).mean(
                     axis=0, dtype=np.float64)
-        except Exception:
-            self._wb_gains = saved
-            self._rebuild_curve()
+            signal = total / frames - black
+            if np.any(signal <= 0):
+                raise RuntimeError(
+                    f"Scene too dark to white balance: channel means "
+                    f"{np.round(total / frames, 1)} against a black level of "
+                    f"{black}. Raise exposure or gain and retry.")
+            gains = signal[1] / signal
+            # Normalise so the largest gain is 1.0: only the ratios carry
+            # colour, and there is no AE loop to pull back a gain that clips.
+            self.wb_gains = tuple(gains / gains.max())
+            return self._wb_gains
+        except BaseException:
+            self.gamma_lut._set_curve(black, saved, self._gamma)
             raise
-        signal = total / frames - black
-        if np.any(signal <= 0):
-            self._wb_gains = saved
-            self._rebuild_curve()
-            raise RuntimeError(
-                f"Scene too dark to white balance: channel means "
-                f"{np.round(total / frames, 1)} against a black level of "
-                f"{black}. Raise exposure or gain and retry.")
-        gains = signal[1] / signal
-        # Normalise so the largest gain is 1.0: only the ratios carry
-        # colour, and there is no AE loop to pull back a gain that clips.
-        self.wb_gains = tuple(gains / gains.max())
-        return self._wb_gains
 
     def _require_sensor(self):
         if self._sensor is None:

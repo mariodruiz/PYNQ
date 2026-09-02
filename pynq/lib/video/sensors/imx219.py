@@ -200,8 +200,6 @@ class IMX219(SonySensor):
     I2C_ADDR = 0x10
     ID_REG = 0x0000
     ID_VALUE = 0x0219
-    # 456 MHz link => 912 Mbps/lane DDR, what the D-PHY is built for.
-    HS_SETTLE_NS = 124
     # imx219_mbus_formats[0] (no flip) is SRGGB10.
     BAYER_PHASE = 0x0
     # Grey-world measurement under one indoor illuminant, no grey card:

@@ -2,6 +2,7 @@
 #   Copyright (C) 2023-2025 Advanced Micro Devices, Inc.
 #   SPDX-License-Identifier: BSD-3-Clause
 
+import math
 import time
 
 from pynq import DefaultIP
@@ -1282,8 +1283,7 @@ class MipiRx(DefaultIP):
         description["registers"] = _registers
         super().__init__(description)
 
-    def configure(self, active_lanes=2, timeout=1.0, hs_settle_ns=None,
-                  core_clk_mhz=200):
+    def configure(self, active_lanes=2, timeout=1.0):
         """Reset and (re-)enable the CSI-2 RX controller then the D-PHY.
 
         Follows the PG232 programming order (controller first, then
@@ -1297,29 +1297,21 @@ class MipiRx(DefaultIP):
             register field encodes lanes-1.
         timeout : float
             Maximum seconds to wait for the soft reset to complete.
-        hs_settle_ns : int or None
-            HS_SETTLE time in ns, applied to every active lane. If None
-            (default) the build-time value is left untouched, which is
-            the normal case -- see the warning below.
-        core_clk_mhz : int
-            D-PHY core clock in MHz for the ns->cycles conversion.
-
-        Warning
-        -------
-        **Passing ``hs_settle_ns`` is unverified and known to break
-        capture.** Driving it with the OV5640's 149 ns stalled the link
-        (``packet_count`` 0 while the lanes still counted packets), so
-        the ns->cycles conversion below does not match what the hardware
-        expects. Whether the register field wants nanoseconds or core_clk
-        cycles has not been confirmed against PG202 on real hardware.
-
-        This is normally unnecessary: the build-time ``C_HS_SETTLE_NS``
-        is one value covering every supported sensor, since the D-PHY
-        spec windows for 672 Mbps and ~912 Mbps overlap. Leave it None
-        unless you are deliberately bringing up a new sensor, and expect
-        to have to determine the correct units first.
         """
         rmap = self.register_map
+        if not isinstance(active_lanes, int):
+            raise TypeError("active_lanes must be an integer")
+        maximum_lanes = int(rmap.protocol_configuration.maximum_lanes) + 1
+        if not 1 <= active_lanes <= maximum_lanes:
+            raise ValueError(
+                f"active_lanes must be between 1 and {maximum_lanes}")
+        try:
+            timeout = float(timeout)
+        except (TypeError, ValueError) as error:
+            raise TypeError("timeout must be numeric") from error
+        if not math.isfinite(timeout) or timeout <= 0:
+            raise ValueError("timeout must be finite and greater than zero")
+
         # --- CSI-2 RX controller ---
         rmap.core_configuration = 0x02
         deadline = time.monotonic() + timeout
@@ -1333,12 +1325,6 @@ class MipiRx(DefaultIP):
         rmap.core_configuration = 0x01
 
         # --- D-PHY ---
-        if hs_settle_ns is not None:
-            cycles = round(hs_settle_ns * core_clk_mhz / 1000)
-            settle_regs = (rmap.dphy_hs_settle0, rmap.dphy_hs_settle1,
-                           rmap.dphy_hs_settle2, rmap.dphy_hs_settle3)
-            for reg in settle_regs[:active_lanes]:
-                reg.hs_settle_ns = cycles
         rmap.dphy_control = 0x01
         rmap.dphy_control = 0x00
         rmap.dphy_control = 0x02
