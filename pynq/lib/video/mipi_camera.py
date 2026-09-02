@@ -370,9 +370,7 @@ class MIPICamera(DefaultHierarchy):
                     f"{np.round(total / frames, 1)} against a black level of "
                     f"{black}. Raise exposure or gain and retry.")
             gains = signal[1] / signal
-            # Normalise so the largest gain is 1.0: only the ratios carry
-            # colour, and there is no AE loop to pull back a gain that clips.
-            self.wb_gains = tuple(gains / gains.max())
+            self.wb_gains = tuple(gains / gains.min())
             return self._wb_gains
         except BaseException:
             self.gamma_lut._set_curve(black, saved, self._gamma)

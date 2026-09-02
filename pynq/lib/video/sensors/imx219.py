@@ -202,10 +202,7 @@ class IMX219(SonySensor):
     ID_VALUE = 0x0219
     # imx219_mbus_formats[0] (no flip) is SRGGB10.
     BAYER_PHASE = 0x0
-    # Grey-world measurement under one indoor illuminant, no grey card:
-    # a starting point, not a calibration. Normalised so the largest is
-    # 1.0, as there is no AE loop to pull back a gain that clips.
-    WB_GAINS = (0.799, 0.541, 1.0)
+    WB_GAINS = (1.477, 1.0, 1.848)
     # Raw output is scene-linear; 2.2 approximates sRGB for display.
     GAMMA = 2.2
     # 4096/65535 in libcamera's imx219.json, i.e. 64 in the native 10
