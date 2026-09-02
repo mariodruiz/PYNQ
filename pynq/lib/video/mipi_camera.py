@@ -71,6 +71,7 @@ class MIPICamera(DefaultHierarchy):
         # Resolved on the first configure(): no I2C here, so overlay load
         # cannot fail when no camera is attached.
         self._sensor = None
+        self._configured = False
         self._bayer_phase = None
         self._wb_gains = None
         self._gamma = None
@@ -107,6 +108,11 @@ class MIPICamera(DefaultHierarchy):
         context manager
             Closes the camera at the end of the block.
         """
+        if videomode.bits_per_pixel not in (8, 16, 24, 32):
+            raise ValueError(
+                "Bits per pixel must be 8, 16, 24 or 32")
+
+        self._configured = False
         if self._vdma.readchannel.running:
             self._vdma.readchannel.stop()
 
@@ -161,6 +167,7 @@ class MIPICamera(DefaultHierarchy):
         self._sensor.start()
         self._wb_gains = wb_gains
         self._gamma = gamma
+        self._configured = True
         return self._closecontextmanager()
 
     def _open_sensor(self, sensor=None):
@@ -201,7 +208,7 @@ class MIPICamera(DefaultHierarchy):
 
     def start(self):
         """Start the pipeline"""
-        if self._sensor is None:
+        if not self._configured:
             raise RuntimeError(
                 "Camera not configured; call configure() first")
         self._vdma.readchannel.start()
@@ -225,6 +232,7 @@ class MIPICamera(DefaultHierarchy):
 
     def close(self):
         """Uninitialise the drivers, stopping the pipeline beforehand"""
+        self._configured = False
         self.stop()
         if self._sensor is not None:
             try:
